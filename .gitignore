@@ -237,3 +237,4 @@ backup
 .vscode
 PodfilterAngular/
 *.db
+*.yaml

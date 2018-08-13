@@ -1,40 +1,61 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Cootstrap.Modules
 {
-    public class FolderCreationModule : ShellModule
+    public abstract class FolderModule : ShellModule
     {
-        private const string FolderCommand = "mkdir";
-        private const string FolderArgument = "-p";
+        protected const string WorkOnParentsArguments = "-p";
 
-        public FolderCreationModule(params string[] folderNames)
-            : base(FolderCommand, FolderArgument)
+        protected abstract string FolderCommand { get; }
+        public IEnumerable<string> FolderNames { get; set; }
+        public bool WorkOnParents { get; set; }
+
+        public FolderModule()
         {
-            if(folderNames.Length == 0)
+            //
+        }
+
+        public FolderModule(params string[] folderNames)
+        {
+            this.FolderNames = folderNames;
+        }
+
+        public FolderModule(bool workOnParents, params string[] folderNames)
+            : this(folderNames)
+        {
+            this.WorkOnParents = workOnParents;
+        }
+
+        protected override void PrepareForExecution()
+        {
+            ThrowIfNoFolderSet();
+            SetCommandAndArguments(FolderCommand, CreateArgument());
+        }
+
+        protected void ThrowIfNoFolderSet()
+        {
+            if(this.FolderNames.Count() == 0)
                 throw new InvalidOperationException("At least one folder name must be supplied to create this module.");
-            this.Arguments += " " + string.Join(" ", folderNames);
+        }
+
+        protected string CreateArgument()
+        {
+            if(this.WorkOnParents)
+                return $"{WorkOnParentsArguments} {string.Join(" ", this.FolderNames)}";
+            else
+                return $"{string.Join(" ", this.FolderNames)}";
         }
     }
 
-    public class FolderRemovalModule : ShellModule
+    public class FolderCreationModule : FolderModule
     {
-        private const string FolderCommand = "rmdir";
-        private const string FolderArgument = "-p";
+        protected override string FolderCommand => "mkdir";
+    }
 
-        private bool removeParents = false;
-
-        public FolderRemovalModule(params string[] folderNames)
-            : base(FolderCommand, FolderArgument)
-        {
-            if(folderNames.Length == 0)
-                throw new InvalidOperationException("At least one folder name must be supplied to create this module.");
-            this.Arguments += " " + string.Join(" ", folderNames);
-        }
-
-        public FolderRemovalModule(bool removeParents, params string[] folderNames)
-            : this(folderNames)
-        {
-            this.removeParents = removeParents;
-        }
+    public class FolderRemovalModule : FolderModule
+    {
+        protected override string FolderCommand => "rmdir";
     }
 }

@@ -1,9 +1,11 @@
 using System;
+using Cootstrap.Modules;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 
 namespace Cootstrap.Helpers
 {
+    /* 
     internal sealed class YamlModuleConverter : IYamlTypeConverter
     {
         public bool Accepts(Type type)
@@ -28,4 +30,5 @@ namespace Cootstrap.Helpers
             throw new NotImplementedException();
         }
     }
+    */
 }

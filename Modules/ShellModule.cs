@@ -15,7 +15,18 @@ namespace Cootstrap.Modules
         public string Arguments { get; set; }
         public bool RequiresElevation { get; set; }
 
+        public ShellModule()
+        {
+            // Empty constructor for deserialization.
+        }
+
         public ShellModule(string command, string argument)
+        {
+            this.Command = command;
+            this.Arguments = argument;
+        }
+
+        protected void SetCommandAndArguments(string command, string argument)
         {
             this.Command = command;
             this.Arguments = argument;
@@ -32,6 +43,11 @@ namespace Cootstrap.Modules
 
             await RunProcessAsTask(startInfo);
         }
+
+        /// <summary>
+        /// Gives the module the chance to properly initialize itself before execution.
+        /// </summary>
+        protected abstract void PrepareForExecution();
 
         private string CreateProcessCommand()
         {

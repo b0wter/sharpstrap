@@ -12,7 +12,7 @@ namespace Cootstrap
     {
         static async Task Main(string[] args)
         {
-            /*
+            /* 
             var bootstrap = new Bootstrap
             {
                 Packages = new List<Package>
@@ -42,7 +42,11 @@ namespace Cootstrap
 
             using(var reader = File.OpenText(args[0]))
             {
-                var deserializer = new DeserializerBuilder().WithNamingConvention(new CamelCaseNamingConvention()).Build();
+                var deserializer = new DeserializerBuilder()
+                                        .WithTagMapping($"tag:yaml.org,2002:{nameof(PackageUpdateModule)}", typeof(PackageUpdateModule))
+                                        .WithTagMapping($"tag:yaml.org,2002:{nameof(PackageInstallModule)}", typeof(PackageInstallModule))
+                                        .WithTagMapping($"tag:yaml.org,2002:{nameof(PackageRemovalModule)}", typeof(PackageRemovalModule))
+                                        .Build();
                 var bootstrap = deserializer.Deserialize<Bootstrap>(reader);
             }
         }

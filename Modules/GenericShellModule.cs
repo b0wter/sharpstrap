@@ -7,9 +7,21 @@ namespace Cootstrap.Modules
     /// </summary>
     public class GenericShellModule : ShellModule
     {
-        public GenericShellModule(string command, string argument) : base(command, argument)
+        public GenericShellModule()
         {
             //
+        }
+
+        public GenericShellModule(string command, string argument) 
+            : base(command, argument)
+        {
+            //
+        }
+
+        protected override void PrepareForExecution()
+        {
+            if(string.IsNullOrWhiteSpace(this.Command))
+                throw new InvalidOperationException("Cannot run a shell command with a command.");
         }
     }
 }

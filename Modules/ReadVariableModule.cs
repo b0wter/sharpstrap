@@ -39,9 +39,9 @@ namespace Cootstrap.Modules
                 throw new InvalidOperationException("Cannot run ReadVariableModule without a variable name.");
 
             if(string.IsNullOrWhiteSpace(this.Prompt))
-                SetCommandAndArguments(ReadCommand, $"{VariableShellPrefix}{VariableName} {CommandDelimter} {PromptCommand} {VariableName}");
+                SetCommandAndArguments(ReadCommand, $"{VariableShellPrefix}{VariableName} {CommandDelimter} {PromptCommand} {VariableShellPrefix}{VariableName}");
             else
-                SetCommandAndArguments(PromptCommand, $"{Prompt} {CommandDelimter} {ReadCommand} {VariableShellPrefix}{VariableName} {CommandDelimter} {PromptCommand} {VariableName}");
+                SetCommandAndArguments(PromptCommand, $"{Prompt} {CommandDelimter} {ReadCommand} {VariableShellPrefix}{VariableName} {CommandDelimter} {PromptCommand} {VariableShellPrefix}{VariableName}");
         }
 
         protected override IDictionary<string, string> ReturnVariables()

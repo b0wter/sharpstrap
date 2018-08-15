@@ -69,7 +69,7 @@ namespace Cootstrap.Modules
         protected virtual string ReplaceVariablesInString(string s, IDictionary<string, string> variables)
         {
             foreach(var pair in variables)
-                s = s.Replace(pair.Key, pair.Value);
+                s = s.Replace($"${pair.Key}", pair.Value);
             return s;
         }
 

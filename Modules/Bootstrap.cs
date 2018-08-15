@@ -9,7 +9,6 @@ namespace Cootstrap.Modules
 {
     public class Bootstrap
     {
-        private const string logFilename = "bootstrap.log";
         private const int PackageNameWidth = 40;
         private const int PackageModuleCountWidth = 3;
         private const int PackageIsCriticalWidth = 8;
@@ -20,6 +19,7 @@ namespace Cootstrap.Modules
         private int columnCount;
 
         public List<Package> Packages { get; set; }
+        public string LogFilename { get; set; } = "bootstrap.log";
 
         public async Task Run(TextReader input, ColoredTextWriter output, int columnCount, bool overrideUserDecision = false)
         {
@@ -42,15 +42,15 @@ namespace Cootstrap.Modules
 
         private void LoadSolvedPackagesFromLog()
         {
-            if(System.IO.File.Exists(logFilename))
+            if(string.IsNullOrWhiteSpace(LogFilename) == false && System.IO.File.Exists(LogFilename))
             {
-                var finishedPackages = System.IO.File.ReadAllLines(logFilename).Where(l => string.IsNullOrWhiteSpace(l) == false);
+                var finishedPackages = System.IO.File.ReadAllLines(LogFilename).Where(l => string.IsNullOrWhiteSpace(l) == false);
                 this.Packages.RemoveAll(p => finishedPackages.Contains(p.Name));
 
                 output.WriteLine("The following packages have already been finished:");
                 foreach(var package in finishedPackages)
                     output.WriteLine($" * {package}");
-                output.WriteLine($"If you want to repeat these steps please delete the '{logFilename}' file.");
+                output.WriteLine($"If you want to repeat these steps please delete the '{LogFilename}' file.");
             }
         }
 
@@ -145,7 +145,25 @@ namespace Cootstrap.Modules
 
         private void LogSolvedPackages()
         {
-            System.IO.File.WriteAllLines(logFilename, this.solvedPackages.Select(p => p.Name));
+            if(string.IsNullOrWhiteSpace(this.LogFilename))
+                return;
+
+            try {
+                System.IO.File.WriteAllLines(LogFilename, this.solvedPackages.Select(p => p.Name));
+            }
+            catch(UnauthorizedAccessException)
+            {
+                output.SetForegroundColor(ConsoleColor.Red);
+                output.WriteLine($"Could not write log to '{LogFilename} because access was denied!");
+                output.ResetColors();
+            }
+            catch(IOException ex)
+            {
+                output.SetForegroundColor(ConsoleColor.Red);
+                output.WriteLine($"Could not write log to '{LogFilename} because a general IO exception was raised:");
+                output.ResetColors();
+                output.WriteLine(ex.Message);
+            }
         }
 
         private bool ValidateRequirementsMet(Package p)

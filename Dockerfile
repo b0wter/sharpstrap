@@ -14,4 +14,4 @@ FROM microsoft/dotnet:aspnetcore-runtime
 WORKDIR /app
 COPY --from=build-env /app/out .
 RUN mkdir -p /mnt/yaml
-ENTRYPOINT ["dotnet", "cootstrap.dll", "/mnt/yaml/complete.yaml"]
+ENTRYPOINT dotnet /app/cootstrap.dll /mnt/yaml/complete.yaml

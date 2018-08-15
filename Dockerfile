@@ -13,5 +13,7 @@ RUN dotnet publish -c Release -o out
 FROM microsoft/dotnet:aspnetcore-runtime
 WORKDIR /app
 COPY --from=build-env /app/out .
+COPY scripts/entry_point /app/entry_point
+RUN chmod +x /app/entry_point
 RUN mkdir -p /mnt/yaml
-ENTRYPOINT dotnet /app/cootstrap.dll /mnt/yaml/complete.yaml
+ENTRYPOINT ["/app/entry_point"]

@@ -45,7 +45,7 @@ namespace Cootstrap.Modules
             if(string.IsNullOrWhiteSpace(LogFilename) == false && System.IO.File.Exists(LogFilename))
             {
                 var finishedPackageNames = System.IO.File.ReadAllLines(LogFilename).Where(l => string.IsNullOrWhiteSpace(l) == false);
-                var finishedPackages = finishedPackageNames.Select(name => this.Packages.Find(p => p.Name == name));
+                var finishedPackages = finishedPackageNames.Select(name => this.Packages.Find(p => p.Name == name)).ToList();
                 this.Packages.RemoveAll(p => finishedPackages.Contains(p));
                 this.solvedPackages.AddRange(finishedPackages);
 
@@ -173,6 +173,8 @@ namespace Cootstrap.Modules
         private bool ValidateRequirementsMet(Package p)
         {
             output.WriteLine($"Resolving solvability for package '{p.Name}'.");
+            output.WriteLine($"{this.solvedPackages == null}");
+            foreach(var s in solvedPackages)
             return p.Requires.Except(this.solvedPackages.Select(d => d.Name)).Count() == 0;
         }
     }

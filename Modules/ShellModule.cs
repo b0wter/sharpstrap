@@ -52,7 +52,7 @@ namespace Cootstrap.Modules
                 FileName = ReplaceVariablesInString(ShellCommand, variables),
                 Arguments = ReplaceVariablesInString($"-c \"{elevationPrefix} {Command} {Arguments}\"", variables),
                 WorkingDirectory = this.WorkingDirectory,
-                RedirectStandardOutput = this.redirectStandardOutput
+                RedirectStandardOutput = this.RedirectStandardOutput
             };
 
             var result = await RunProcessAsTask(startInfo);

@@ -48,10 +48,11 @@ namespace Cootstrap.Modules
 
         protected override IDictionary<string, string> ReturnVariables()
         {
+            // Since read is ended by hitting return an additional empty line will be added at the end!
             return new Dictionary<string, string>() {
                 {
                     this.VariableName,
-                    this.Output.Last()
+                    this.Output.Reverse().Skip(1).First()
                 }
             };
         }

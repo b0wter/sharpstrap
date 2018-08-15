@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using Cootstrap.Helpers;
 using Cootstrap.Modules;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -12,43 +14,43 @@ namespace Cootstrap
     {
         static async Task Main(string[] args)
         {
-            /* 
-            var bootstrap = new Bootstrap
+            if((args.Length != 1 && args.Length != 2) || File.Exists(args.Last()) == false)
             {
-                Packages = new List<Package>
-                {
-                    new Package
-                    {
-                        Name = "Basic package manager operations.",
-                        Modules = new List<BaseModule>
-                        {
-                            new PackageRemovalModule("libreoffice", "evolution", "libreoffice*"),
-                            new PackageUpdateModule(),
-                            new PackageInstallModule("android-tools", "awesome")
-                        }
-                    }
-                }
-            };
-
-            var serializer = new SerializerBuilder().Build();
-            var yaml = serializer.Serialize(bootstrap);
-            File.WriteAllText("generated.yaml", yaml);
-            */
-            if(args.Length != 1 || File.Exists(args[0]) == false)
-            {
-                Console.WriteLine("This tool requires exactly parameter.");
+                Console.WriteLine("This tool requires at least parameter (config file). You may add the '-y' option before the filename to autorun the bootstrap.");
                 return;
             }
 
-            using(var reader = File.OpenText(args[0]))
+            bool overrideUserDecision = args.First() == "-y";
+
+            using(var reader = File.OpenText(args.Last()))
             {
-                var deserializer = new DeserializerBuilder()
-                                        .WithTagMapping($"tag:yaml.org,2002:{nameof(PackageUpdateModule)}", typeof(PackageUpdateModule))
-                                        .WithTagMapping($"tag:yaml.org,2002:{nameof(PackageInstallModule)}", typeof(PackageInstallModule))
-                                        .WithTagMapping($"tag:yaml.org,2002:{nameof(PackageRemovalModule)}", typeof(PackageRemovalModule))
-                                        .Build();
+                var deserializer = CreateDefaultDeserializer();
                 var bootstrap = deserializer.Deserialize<Bootstrap>(reader);
+
+                await bootstrap.Run(Console.In, new ConsoleWriter(), Console.BufferWidth, overrideUserDecision);
             }
+        }
+
+        private static Deserializer CreateDefaultDeserializer()
+        {
+            var moduleFinder = new ModuleFinder
+            {
+                Prefix = "tag:yaml.org,2002:",
+                Suffix = "",
+                TrimStart = "",
+                TrimEnd = "Module"
+            };
+
+            var mappings = moduleFinder.GetAllModulesForModulesNamespace();
+
+            var builder = new DeserializerBuilder();
+            foreach(var mapping in mappings)
+            {
+                System.Diagnostics.Debug.WriteLine($"Added custom tag for yaml mapping: {mapping.Name} - {mapping.Type.Name}");
+                builder = builder.WithTagMapping(mapping.Name, mapping.Type);
+            }
+            
+            return builder.Build();
         }
     }
 }

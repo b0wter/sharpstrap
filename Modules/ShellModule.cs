@@ -1,5 +1,8 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Cootstrap.Helpers;
 
 namespace Cootstrap.Modules
 {
@@ -14,6 +17,8 @@ namespace Cootstrap.Modules
         public string Command { get; set; }
         public string Arguments { get; set; }
         public bool RequiresElevation { get; set; }
+        public IList<string> Output { get; set; } = new List<string>();
+        public string WorkingDirectory { get; set; }
 
         public ShellModule()
         {
@@ -33,15 +38,25 @@ namespace Cootstrap.Modules
         }
 
         // TODO: return a meaningful Task with a sucess/error code.
-        public async override Task Run()
+        public async override Task<ModuleResult> Run(IDictionary<string, string> variables, ColoredTextWriter output)
         {
+            PrepareForExecution();
+
+            string elevationPrefix = this.RequiresElevation ? ElevationPrefix : string.Empty;
+
             var startInfo = new ProcessStartInfo
             {
-                FileName = ShellCommand,
-                Arguments = $"-c \"{ElevationPrefix} {Command} {Arguments}\""
+                FileName = ReplaceVariablesInString(ShellCommand, variables),
+                Arguments = ReplaceVariablesInString($"-c \"{elevationPrefix} {Command} {Arguments}\"", variables),
+                WorkingDirectory = this.WorkingDirectory
             };
 
-            await RunProcessAsTask(startInfo);
+            var result = await RunProcessAsTask(startInfo);
+
+            return new ModuleResult(
+                (result == 0 ? ModuleResultStates.Success : ModuleResultStates.Error),
+                this.Output
+            );
         }
 
         /// <summary>
@@ -49,12 +64,19 @@ namespace Cootstrap.Modules
         /// </summary>
         protected abstract void PrepareForExecution();
 
+        protected virtual string ReplaceVariablesInString(string s, IDictionary<string, string> variables)
+        {
+            foreach(var pair in variables)
+                s = s.Replace(pair.Key, pair.Value);
+            return s;
+        }
+
         private string CreateProcessCommand()
         {
             return $"-c \"{ElevationPrefix} {Command} {Arguments}\"";
         }
 
-        protected Task RunProcessAsTask(ProcessStartInfo startInfo)
+        protected Task<int> RunProcessAsTask(ProcessStartInfo startInfo)
         {
             var tcs = new TaskCompletionSource<int>();
 
@@ -68,6 +90,11 @@ namespace Cootstrap.Modules
             {
                 tcs.SetResult(process.ExitCode);
                 process.Dispose();
+            };
+
+            process.OutputDataReceived += (sender, args) =>
+            {
+                this.Output.Add(args.Data);
             };
 
             process.Start();

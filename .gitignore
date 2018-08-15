@@ -238,3 +238,4 @@ backup
 PodfilterAngular/
 *.db
 *.yaml
+*.swp

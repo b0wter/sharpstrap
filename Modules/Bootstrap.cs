@@ -172,6 +172,7 @@ namespace Cootstrap.Modules
 
         private bool ValidateRequirementsMet(Package p)
         {
+            output.WriteLine($"Resolving solvability for package '{p.Name}'.");
             return p.Requires.Except(this.solvedPackages.Select(d => d.Name)).Count() == 0;
         }
     }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Cootstrap.Helpers;
 
@@ -55,7 +56,8 @@ namespace Cootstrap.Modules
 
             return new ModuleResult(
                 (result == 0 ? ModuleResultStates.Success : ModuleResultStates.Error),
-                this.Output
+                this.Output,
+                $"{startInfo.FileName} {startInfo.Arguments}"
             );
         }
 

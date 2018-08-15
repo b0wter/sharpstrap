@@ -55,6 +55,9 @@ namespace Cootstrap.Modules
 
                 if(result.State != ModuleResultStates.Success)
                 {
+                    output.WriteLine("Command run:");
+                    output.WriteLine(result.CommandRun);
+
                     if(module.AllowError)
                     {
                         output.SetForegroundColor(ConsoleColor.Yellow);

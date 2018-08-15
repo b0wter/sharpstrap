@@ -102,5 +102,10 @@ namespace Cootstrap.Modules
             process.Start();
             return tcs.Task;
         }
+
+        protected virtual IDictionary<string, string> ReturnVariables()
+        {
+            return new Dictionary<string, string>();
+        }
     }   
 }

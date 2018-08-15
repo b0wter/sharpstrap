@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Cootstrap.Helpers;
 
@@ -38,21 +39,19 @@ namespace Cootstrap.Modules
                 throw new InvalidOperationException("Cannot run ReadVariableModule without a variable name.");
 
             if(string.IsNullOrWhiteSpace(this.Prompt))
-                SetCommandAndArguments(ReadCommand, $"{VariableShellPrefix}{VariableName}");
+                SetCommandAndArguments(ReadCommand, $"{VariableShellPrefix}{VariableName} {CommandDelimter} {PromptCommand} {VariableName}");
             else
-                SetCommandAndArguments(PromptCommand, $"{Prompt} {CommandDelimter} {ReadCommand} {VariableShellPrefix}{VariableName}");
+                SetCommandAndArguments(PromptCommand, $"{Prompt} {CommandDelimter} {ReadCommand} {VariableShellPrefix}{VariableName} {CommandDelimter} {PromptCommand} {VariableName}");
         }
 
-        /*
-        public override Task<ModuleResult> Run(IDictionary<string, string> variables, ColoredTextWriter output)
-        {   
-            if(string.IsNullOrWhiteSpace(Prompt) == false)
-                output.WriteLine(Prompt);
-
-            var result = Console.ReadLine();
-
-            return new ModuleResult(ModuleResultStates.Success, new List<string>(), new Dictionary<string, string>() { { this.VariableName,  result } } );
+        protected override IDictionary<string, string> ReturnVariables()
+        {
+            return new Dictionary<string, string>() {
+                {
+                    this.VariableName,
+                    this.Output.Last()
+                }
+            };
         }
-        */
     }
 }

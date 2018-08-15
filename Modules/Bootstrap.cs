@@ -9,6 +9,7 @@ namespace Cootstrap.Modules
 {
     public class Bootstrap
     {
+        private const string logFilename = "bootstrap.log";
         private const int PackageNameWidth = 40;
         private const int PackageModuleCountWidth = 3;
         private const int PackageIsCriticalWidth = 8;
@@ -28,12 +29,28 @@ namespace Cootstrap.Modules
 
             if(InitPackageOperation(overrideUserDecision))
             {
+                LoadSolvedPackagesFromLog();
                 await RunAllPackages();
+                LogSolvedPackages();
             }
             else
             {
                 // Package installation was cancelled.
                 // Nothing to do here.
+            }
+        }
+
+        private void LoadSolvedPackagesFromLog()
+        {
+            if(System.IO.File.Exists(logFilename))
+            {
+                var finishedPackages = System.IO.File.ReadAllLines(logFilename).Where(l => string.IsNullOrWhiteSpace(l) == false);
+                this.Packages.RemoveAll(p => finishedPackages.Contains(p.Name));
+
+                output.WriteLine("The following packages have already been finished:");
+                foreach(var package in finishedPackages)
+                    output.WriteLine($" * {package}");
+                output.WriteLine($"If you want to repeat these steps please delete the '{logFilename}' file.");
             }
         }
 
@@ -68,7 +85,7 @@ namespace Cootstrap.Modules
 
                 output.WriteLine($"{paddedName} {paddedModuleCount} {paddedIsCritical} {paddedDescription}");
             }
-            
+
             if(overrideUserDecision)
             {
                 return true;
@@ -126,14 +143,14 @@ namespace Cootstrap.Modules
             }
         }
 
+        private void LogSolvedPackages()
+        {
+            System.IO.File.WriteAllLines(logFilename, this.solvedPackages.Select(p => p.Name));
+        }
+
         private bool ValidateRequirementsMet(Package p)
         {
             return p.Requires.Except(this.solvedPackages.Select(d => d.Name)).Count() == 0;
-        }
-
-        private void RunPackage()
-        {
-
         }
     }
 }

@@ -15,7 +15,7 @@ namespace Cootstrap.Modules
         private const string ElevationPrefix = "sudo";
         private const string ShellCommand = "/usr/bin/bash";
 
-        protected bool redirectStandardOutput = false;
+        protected virtual bool RedirectStandardOutput => false;
 
         public string Command { get; set; }
         public string Arguments { get; set; }

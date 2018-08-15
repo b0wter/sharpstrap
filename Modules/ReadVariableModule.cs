@@ -13,12 +13,14 @@ namespace Cootstrap.Modules
         private const string VariableShellPrefix = "$";
         private const string CommandDelimter = ";";
 
+        protected override bool RedirectStandardOutput => true;
+
         public string Prompt { get; set; }
         public string VariableName { get; set; }
 
         public ReadVariableModule()
         {
-            this.redirectStandardOutput = true;
+            //
         }
 
         public ReadVariableModule(string variableName)

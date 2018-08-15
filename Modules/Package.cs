@@ -21,7 +21,7 @@ namespace Cootstrap.Modules
 
         /// <summary>
         /// Gets/sets if this package is mission ciritical.
-        /// Bootstrapping will stop if this failes.
+        /// Bootstrapping will stop if this fails.
         /// </summary>
         /// <value></value>
         public bool IsCritical { get; set; }
@@ -54,7 +54,18 @@ namespace Cootstrap.Modules
                 var result = await module.Run(this.Variables, output);
 
                 if(result.State != ModuleResultStates.Success)
-                    throw new ShellCommandException();
+                {
+                    if(module.AllowError)
+                    {
+                        output.SetForegroundColor(ConsoleColor.Yellow);
+                        output.WriteLine($"{module.GetType().Name} failed! Since it is marked with 'AllowError' the rest of the package will be run.");
+                        output.ResetColors();
+                    }
+                    else
+                    {
+                        throw new ShellCommandException(result.Output);
+                    }
+                }
                 else
                 {
                     foreach(var pair in result.Variables)

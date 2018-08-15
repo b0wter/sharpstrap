@@ -46,5 +46,10 @@ namespace Cootstrap.Modules
         /// Performs the action this module is intended to do. Requires previous setup.
         /// </summary>
         public abstract Task<ModuleResult> Run(IDictionary<string, string> variables, ColoredTextWriter output);
+        /// <summary>
+        /// Gets/sets if this module is allowed to fail.
+        /// If it is true the package will continue to be executed.
+        /// </summary>
+        public bool AllowError { get; set; }
     }
 }

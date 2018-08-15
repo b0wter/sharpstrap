@@ -57,7 +57,8 @@ namespace Cootstrap.Modules
             return new ModuleResult(
                 (result == 0 ? ModuleResultStates.Success : ModuleResultStates.Error),
                 this.Output,
-                $"{startInfo.FileName} {startInfo.Arguments}"
+                $"{startInfo.FileName} {startInfo.Arguments}",
+                ReturnVariables()
             );
         }
 
@@ -69,7 +70,10 @@ namespace Cootstrap.Modules
         protected virtual string ReplaceVariablesInString(string s, IDictionary<string, string> variables)
         {
             foreach(var pair in variables)
+            {
+                Console.WriteLine($"{pair.Key} - {pair.Value}");
                 s = s.Replace($"${pair.Key}", pair.Value);
+            }
             return s;
         }
 

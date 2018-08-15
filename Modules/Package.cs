@@ -63,6 +63,9 @@ namespace Cootstrap.Modules
                     }
                     else
                     {
+                        output.SetForegroundColor(ConsoleColor.Red);
+                        output.WriteLine($"{module.GetType().Name} failed for package {this.Name}! This package is marked to fail on any module error. Stopping run of this package.");
+                        output.ResetColors();
                         throw new ShellCommandException(result.Output);
                     }
                 }

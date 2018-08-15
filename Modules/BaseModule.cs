@@ -26,5 +26,13 @@ namespace Cootstrap.Modules
         /// If it is true the package will continue to be executed.
         /// </summary>
         public bool AllowError { get; set; }
+
+        /// <summary>
+        /// Can be overriden to supply arguments back to the package. Default implementation yields an empty dictionary.
+        /// </summary>
+        protected virtual IDictionary<string, string> ReturnVariables()
+        {
+            return new Dictionary<string, string>();
+        }
     }
 }

@@ -44,11 +44,13 @@ namespace Cootstrap.Modules
         {
             if(string.IsNullOrWhiteSpace(LogFilename) == false && System.IO.File.Exists(LogFilename))
             {
-                var finishedPackages = System.IO.File.ReadAllLines(LogFilename).Where(l => string.IsNullOrWhiteSpace(l) == false);
-                this.Packages.RemoveAll(p => finishedPackages.Contains(p.Name));
+                var finishedPackageNames = System.IO.File.ReadAllLines(LogFilename).Where(l => string.IsNullOrWhiteSpace(l) == false);
+                var finishedPackages = finishedPackageNames.Select(name => this.Packages.Find(p => p.Name == name));
+                this.Packages.RemoveAll(p => finishedPackages.Contains(p));
+                this.solvedPackages.AddRange(finishedPackages);
 
                 output.WriteLine("The following packages have already been finished:");
-                foreach(var package in finishedPackages)
+                foreach(var package in finishedPackageNames)
                     output.WriteLine($" * {package}");
                 output.WriteLine($"If you want to repeat these steps please delete the '{LogFilename}' file.");
             }

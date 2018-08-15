@@ -107,7 +107,8 @@ namespace Cootstrap.Modules
             };
 
             process.Start();
-            process.BeginOutputReadLine();
+            if(startInfo.RedirectStandardOutput)
+                process.BeginOutputReadLine();
             return tcs.Task;
         }
     }   

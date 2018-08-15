@@ -74,7 +74,6 @@ namespace Cootstrap.Modules
         {
             foreach(var pair in variables)
             {
-                Console.WriteLine($"{pair.Key} - {pair.Value}");
                 s = s.Replace($"${pair.Key}", pair.Value);
             }
             return s;

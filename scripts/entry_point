@@ -1,3 +1,8 @@
 #!/usr/bin/env bash
-
+echo $(whoami)
+echo $(which sudo)
+echo "=== /app ==="
+ls /app
+echo "=== /mnt/yaml ==="
+ls /mnt/yaml
 dotnet /app/cootstrap.dll /mnt/yaml/complete.yaml

@@ -18,7 +18,7 @@ namespace Cootstrap.Modules
         private ColoredTextWriter output;
         private int columnCount;
 
-        public List<Package> Packages { get; set; }
+        public List<Package> Packages { get; set; } = new List<Package>();
         public string LogFilename { get; set; } = "bootstrap.log";
 
         public async Task Run(TextReader input, ColoredTextWriter output, int columnCount, bool overrideUserDecision = false)
@@ -50,9 +50,11 @@ namespace Cootstrap.Modules
                 this.solvedPackages.AddRange(finishedPackages);
 
                 output.WriteLine("The following packages have already been finished:");
+                output.WriteLine();
                 foreach(var package in finishedPackageNames)
                     output.WriteLine($" * {package}");
-                output.WriteLine($"If you want to repeat these steps please delete the '{LogFilename}' file.");
+                output.WriteLine();
+                output.WriteLine($"If you want to repeat these steps remove '{LogFilename}'.");
             }
         }
 

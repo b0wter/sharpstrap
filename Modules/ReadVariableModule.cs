@@ -18,7 +18,7 @@ namespace Cootstrap.Modules
 
         public ReadVariableModule()
         {
-            //
+            this.redirectStandardOutput = true;
         }
 
         public ReadVariableModule(string variableName)

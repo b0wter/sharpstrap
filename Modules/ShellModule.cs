@@ -15,6 +15,8 @@ namespace Cootstrap.Modules
         private const string ElevationPrefix = "sudo";
         private const string ShellCommand = "/usr/bin/bash";
 
+        protected bool redirectStandardOutput = false;
+
         public string Command { get; set; }
         public string Arguments { get; set; }
         public bool RequiresElevation { get; set; }
@@ -49,7 +51,8 @@ namespace Cootstrap.Modules
             {
                 FileName = ReplaceVariablesInString(ShellCommand, variables),
                 Arguments = ReplaceVariablesInString($"-c \"{elevationPrefix} {Command} {Arguments}\"", variables),
-                WorkingDirectory = this.WorkingDirectory
+                WorkingDirectory = this.WorkingDirectory,
+                RedirectStandardOutput = this.redirectStandardOutput
             };
 
             var result = await RunProcessAsTask(startInfo);
@@ -103,8 +106,8 @@ namespace Cootstrap.Modules
                 this.Output.Add(args.Data);
             };
 
-            process.BeginOutputReadLine();
             process.Start();
+            process.BeginOutputReadLine();
             return tcs.Task;
         }
     }   

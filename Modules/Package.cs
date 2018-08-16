@@ -44,8 +44,11 @@ namespace Cootstrap.Modules
         /// <typeparam name="string">Content of the variable.</typeparam>
         public IDictionary<string, string> Variables { get; set; } = new Dictionary<string, string>();
 
-        public async Task Run(ColoredTextWriter output)
+        public async Task Run(ColoredTextWriter output, IDictionary<string, string> variables)
         {
+            foreach(var variable in variables)
+                this.Variables.Add(variable.Key, variable.Value);
+
             output.WriteLine($"Starting work on '{Name}'");
 
             foreach(var module in Modules)

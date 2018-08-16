@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 using Cootstrap.Helpers;
+using System.Runtime.InteropServices;
 
 namespace Cootstrap.Modules
 {
@@ -57,6 +58,13 @@ namespace Cootstrap.Modules
         /// </summary>
         /// <value></value>
         public string LogFilename { get; set; } = "bootstrap.log";
+        /// <summary>
+        /// Global variables are injected into every package that is executed.
+        /// </summary>
+        /// <typeparam name="string"></typeparam>
+        /// <typeparam name="string"></typeparam>
+        /// <returns></returns>
+        public IDictionary<string, string> GlobalVariables { get; set; } = new Dictionary<string, string>();
 
         /// <summary>
         /// Initializes and runs the bootstrap process.
@@ -72,6 +80,8 @@ namespace Cootstrap.Modules
             this.output = output;
             this.columnCount = columnCount;
 
+            AddDefaultVariables();
+
             if(InitPackageOperation(overrideUserDecision))
             {
                 LoadSolvedPackagesFromLog();
@@ -83,6 +93,16 @@ namespace Cootstrap.Modules
                 // Package installation was cancelled.
                 // Nothing to do here.
             }
+        }
+
+        private void AddDefaultVariables()
+        {
+            this.GlobalVariables.Add("username", Environment.UserName);
+
+            var envHome = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "HOMEPATH" : "HOME";
+            var home = Environment.GetEnvironmentVariable(envHome);
+
+            this.GlobalVariables.Add("homedir", home);
         }
 
         /// <summary>
@@ -179,7 +199,7 @@ namespace Cootstrap.Modules
                 foreach(var package in solvablePackages)
                 {
                     try{
-                        await package.Run(output);
+                        await package.Run(output, this.GlobalVariables);
 
                         // Add the package to the solved dependencies so that the depending packages can be run.
                         //

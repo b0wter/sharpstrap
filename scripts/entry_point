@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+sudo dbus-launch
 echo $(whoami)
 echo $(which sudo)
 echo "=== /app ==="

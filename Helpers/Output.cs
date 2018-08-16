@@ -9,6 +9,7 @@ namespace Cootstrap.Helpers
         public abstract void SetForegroundColor(ConsoleColor color);
         public abstract void SetBackgroundColor(ConsoleColor color);
         public abstract void ResetColors();
+        public abstract void Flush();
     }
 
     public class ConsoleWriter : ColoredTextWriter
@@ -41,6 +42,11 @@ namespace Cootstrap.Helpers
         {
             Console.Out.Flush();
             Console.ForegroundColor = color;
+        }
+
+        public override void Flush()
+        {
+            Console.Out.Flush();
         }
     }
 }

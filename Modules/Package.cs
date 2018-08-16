@@ -50,7 +50,6 @@ namespace Cootstrap.Modules
 
             foreach(var module in Modules)
             {
-                output.WriteLine($"Starting {module.GetType().Name}");
                 var result = await module.Run(this.Variables, output);
 
                 if(result.State != ModuleResultStates.Success)

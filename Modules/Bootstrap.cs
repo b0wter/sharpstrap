@@ -9,18 +9,63 @@ namespace Cootstrap.Modules
 {
     public class Bootstrap
     {
+        /// <summary>
+        /// Number of columns reserved for the names of the packages.
+        /// </summary>
         private const int PackageNameWidth = 40;
+        /// <summary>
+        /// Number of columns reserved for the number of operations per package.
+        /// </summary>
         private const int PackageModuleCountWidth = 3;
+        /// <summary>
+        /// Number of columns reserved for the IsCritical flag output.
+        /// </summary>
         private const int PackageIsCriticalWidth = 8;
+        /// <summary>
+        /// List of packages that executred successfully.
+        /// </summary>
+        /// <typeparam name="Package"></typeparam>
+        /// <returns></returns>
         private List<Package> solvedPackages = new List<Package>();
+        /// <summary>
+        /// List of packages that failed execution.
+        /// </summary>
+        /// <typeparam name="Package"></typeparam>
+        /// <returns></returns>
         private List<Package> unsolvedPackages = new List<Package>();
+        /// <summary>
+        /// Input device, usually the console.
+        /// </summary>
         private TextReader input;
+        /// <summary>
+        /// Output devices, usually the console.
+        /// </summary>
         private ColoredTextWriter output;
+        /// <summary>
+        /// Number of columns of the current output device.
+        /// </summary>
         private int columnCount;
 
+        /// <summary>
+        /// List of packages that will be run.
+        /// </summary>
+        /// <typeparam name="Package"></typeparam>
+        /// <returns></returns>
         public List<Package> Packages { get; set; } = new List<Package>();
+        /// <summary>
+        /// Filename for the logfile. No file will be written if it's empty.
+        /// </summary>
+        /// <value></value>
         public string LogFilename { get; set; } = "bootstrap.log";
 
+        /// <summary>
+        /// Initializes and runs the bootstrap process.
+        /// </summary>
+        /// <param name="input">Device that provides user input.</param>
+        /// <param name="output">Device with display capabilities.</param>
+        /// <param name="columnCount">Number of columns the output devices can render.</param>
+        /// <param name="overrideUserDecision">Override the user interaction asking for confirmation.</param>
+        /// <returns></returns>
         public async Task Run(TextReader input, ColoredTextWriter output, int columnCount, bool overrideUserDecision = false)
         {
             this.input = input;
@@ -40,6 +85,10 @@ namespace Cootstrap.Modules
             }
         }
 
+        /// <summary>
+        /// Checks the existance of a previous log file and reads the previously installed packages from it.
+        /// These packages will be moved to <see cref="solvedPackages"/> and not rerun.
+        /// </summary>
         private void LoadSolvedPackagesFromLog()
         {
             if(string.IsNullOrWhiteSpace(LogFilename) == false && System.IO.File.Exists(LogFilename))
@@ -58,6 +107,11 @@ namespace Cootstrap.Modules
             }
         }
 
+        /// <summary>
+        /// Displays a summary of the deserialized packages. Includes all packages, even the previously completed ones.
+        /// </summary>
+        /// <param name="overrideUserDecision"></param>
+        /// <returns></returns>
         private bool InitPackageOperation(bool overrideUserDecision)
         {
             int noOfPackages = Packages.Count();
@@ -107,6 +161,10 @@ namespace Cootstrap.Modules
             }
         }
 
+        /// <summary>
+        /// Runs each package separately, taking their prerequisites into account.
+        /// </summary>
+        /// <returns></returns>
         private async Task RunAllPackages()
         {
             while(this.Packages.Count() != 0)
@@ -147,6 +205,10 @@ namespace Cootstrap.Modules
             }
         }
 
+
+        /// <summary>
+        /// Writes the contents of <see cref="solvedPackages"/> to the log file.
+        /// </summary>
         private void LogSolvedPackages()
         {
             if(string.IsNullOrWhiteSpace(this.LogFilename))
@@ -170,6 +232,11 @@ namespace Cootstrap.Modules
             }
         }
 
+        /// <summary>
+        /// Checks if the requirements for the given package have been installed.
+        /// </summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
         private bool ValidateRequirementsMet(Package p)
         {
             return p.Requires.Except(this.solvedPackages.Select(d => d.Name)).Count() == 0;

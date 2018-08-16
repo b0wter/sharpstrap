@@ -40,7 +40,6 @@ namespace Cootstrap.Modules
             this.Arguments = argument;
         }
 
-        // TODO: return a meaningful Task with a sucess/error code.
         public async override Task<ModuleResult> Run(IDictionary<string, string> variables, ColoredTextWriter output)
         {
             PrepareForExecution();
@@ -55,7 +54,9 @@ namespace Cootstrap.Modules
                 RedirectStandardOutput = this.RedirectStandardOutput
             };
 
+            PreExecution(variables, output);
             var result = await RunProcessAsTask(startInfo);
+            PostExecution(variables, output);
 
             return new ModuleResult(
                 (result == 0 ? ModuleResultStates.Success : ModuleResultStates.Error),
@@ -63,6 +64,16 @@ namespace Cootstrap.Modules
                 $"{startInfo.FileName} {startInfo.Arguments}",
                 ReturnVariables()
             );
+        }
+
+        protected virtual void PreExecution(IDictionary<string, string> variables, ColoredTextWriter output)
+        {
+            // can be overriden in other modules in case they need to do some setup work
+        }
+
+        protected virtual void PostExecution(IDictionary<string, string> variables, ColoredTextWriter output)
+        {
+            // can be overriden in other modules in case they need to clean some work up
         }
 
         /// <summary>

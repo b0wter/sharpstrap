@@ -27,9 +27,9 @@ namespace Cootstrap.Modules
         {
             if(string.IsNullOrWhiteSpace(Source))
                 throw new InvalidOperationException("Cannot use LinkModule without a Source.");
-            if(System.IO.File.Exists(Source) == false)
-                throw new InvalidOperationException("Cannot create link for a source that doesn't exist.");
-            // Target can be null as the source name will be used instead.
+            // Target may be null as the source name will be used instead.
+
+            SetCommandAndArguments(LinkCommand, CreateArgument());
         }
 
         private string CreateArgument()

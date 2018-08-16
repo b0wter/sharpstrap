@@ -121,6 +121,11 @@ namespace Cootstrap.Modules
 
         public string Url { get; set; }
 
+        public KeyImportModule()
+        {
+            //
+        }
+
         public KeyImportModule(string url) 
         {
             this.Url = url;
@@ -130,6 +135,8 @@ namespace Cootstrap.Modules
         {
             if(string.IsNullOrWhiteSpace(this.Url))
                 throw new InvalidOperationException("Cannot import an empty url.");
+
+            SetCommandAndArguments(PackageManagerCommand, PackageManagerArgument + " " + this.Url);
         }
     }
 }

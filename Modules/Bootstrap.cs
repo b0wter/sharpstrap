@@ -156,7 +156,7 @@ namespace Cootstrap.Modules
                 var paddedIsCritical = package.IsCritical.ToString().PadRight(PackageIsCriticalWidth);
 
                 string paddedDescription;
-                if(package.Description.Length > remainingWidth && remainingWidth - 3 > 0)
+                if(package.Description != null && package.Description.Length > remainingWidth && remainingWidth - 3 > 0)
                     paddedDescription = package.Description.Substring(0, remainingWidth - 3) + "...";
                 else
                     paddedDescription = package.Description;

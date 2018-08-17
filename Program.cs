@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Cootstrap.Helpers;
 using Cootstrap.Modules;
+using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -25,9 +26,17 @@ namespace Cootstrap
             using(var reader = File.OpenText(args.Last()))
             {
                 var deserializer = CreateDefaultDeserializer();
-                var bootstrap = deserializer.Deserialize<Bootstrap>(reader);
 
-                await bootstrap.Run(Console.In, new ConsoleWriter(), Console.BufferWidth, overrideUserDecision);
+                try{
+                    var bootstrap = deserializer.Deserialize<Bootstrap>(reader);
+                    await bootstrap.Run(Console.In, new ConsoleWriter(), Console.BufferWidth, overrideUserDecision);
+                }
+                catch(IOException ex)
+                {
+                    Console.WriteLine("Encountered an exception while trying to parse the yaml file:");
+                    Console.WriteLine(ex.Message);
+                }
+
             }
         }
 

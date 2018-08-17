@@ -2,19 +2,25 @@ using System;
 
 namespace Cootstrap.Modules
 {
-    public abstract class DownloadModule : ShellModule
+    public class DownloadModule : ShellModule
     {
         private const string DownloadCommand = "wget";
         private const string TargetFileNameArgument = "-O";
 
 
         public string Url { get; set; }
-        public string TargetFilename { get; set; }
+        public string Target { get; set; }
+
+        public DownloadModule()
+        {
+            //
+        }
 
         public DownloadModule(string url, string targetFilename = null)
+            : this()
         {
             this.Url = url;
-            this.TargetFilename = targetFilename;
+            this.Target = targetFilename;
         }
 
         protected override void PrepareForExecution()
@@ -24,10 +30,10 @@ namespace Cootstrap.Modules
 
         private string CreateArgument()
         {
-            if(string.IsNullOrWhiteSpace(this.TargetFilename))
-                return "";
+            if(string.IsNullOrWhiteSpace(this.Target))
+                return $"{Url}";
             else
-                return $"{TargetFileNameArgument} {TargetFilename}";
+                return $"{TargetFileNameArgument} {Target} {Url}";
         }
     }
 }

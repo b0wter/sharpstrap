@@ -27,6 +27,12 @@ namespace Cootstrap.Modules
         public bool IsCritical { get; set; }
 
         /// <summary>
+        /// Gets/sets wether this package will be run even it has been previously finished.
+        /// </summary>
+        /// <value></value>
+        public bool IgnoreAlreadySolved { get; set; }
+
+        /// <summary>
         /// Actual working modules of this package.
         /// </summary>
         public IEnumerable<BaseModule> Modules { get; set; } = new List<BaseModule>();
@@ -57,8 +63,12 @@ namespace Cootstrap.Modules
 
                 if(result.State != ModuleResultStates.Success)
                 {
+                    output.SetForegroundColor(ConsoleColor.DarkYellow);
                     output.WriteLine("Command run:");
                     output.WriteLine(result.CommandRun);
+                    output.WriteLine("Output:");
+                    output.WriteLine(string.Join(Environment.NewLine, result.Output));
+                    output.ResetColors();
 
                     if(module.AllowError)
                     {
@@ -77,12 +87,23 @@ namespace Cootstrap.Modules
                 else
                 {
                     foreach(var pair in result.Variables)
-                        this.Variables.Add(pair.Key, pair.Value);
+                    {
+                        if(this.Variables.ContainsKey(pair.Key))
+                        {
+                            output.WriteLine($"Replacing value '{this.Variables[pair.Key]}' of '${pair.Key}' with '{pair.Value}'.");
+                            this.Variables[pair.Key] = pair.Value;
+                        }
+                        else
+                        {
+                            output.WriteLine($"Adding '{pair.Key}' to variable store.");
+                            this.Variables.Add(pair.Key, pair.Value);
+                        }
+                    }
                 }
             }
 
             output.SetForegroundColor(ConsoleColor.Green);
-            output.WriteLine("Finished successfully.");
+            output.WriteLine($"Finished '{this.Name}' successfully.");
             output.ResetColors();
         }
     }

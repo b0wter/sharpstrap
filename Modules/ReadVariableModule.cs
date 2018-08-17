@@ -14,6 +14,7 @@ namespace Cootstrap.Modules
         private const string CommandDelimter = ";";
 
         protected override bool RedirectStandardOutput => true;
+        protected override bool SkipVariableReplacement => true;
 
         public string Prompt { get; set; }
         public string VariableName { get; set; }
@@ -40,10 +41,7 @@ namespace Cootstrap.Modules
             if(string.IsNullOrWhiteSpace(this.VariableName))
                 throw new InvalidOperationException("Cannot run ReadVariableModule without a variable name.");
 
-            if(string.IsNullOrWhiteSpace(this.Prompt))
-                SetCommandAndArguments(ReadCommand, $"{VariableName} {CommandDelimter} {PromptCommand} {VariableShellPrefix}{VariableName}");
-            else
-                SetCommandAndArguments(PromptCommand, $"{Prompt} {CommandDelimter} {ReadCommand} {VariableName} {CommandDelimter} {PromptCommand} {VariableShellPrefix}{VariableName}");
+            SetCommandAndArguments(ReadCommand, $"{VariableName} {CommandDelimter} {PromptCommand} {VariableShellPrefix}{VariableName}");
         }
 
         protected override IDictionary<string, string> ReturnVariables()

@@ -46,11 +46,15 @@ namespace Cootstrap.Modules
 
             string elevationPrefix = this.RequiresElevation ? ElevationPrefix : string.Empty;
 
+            string workingDirectory = ReplaceVariablesInString(this.WorkingDirectory, variables);
+            if(string.IsNullOrWhiteSpace(workingDirectory) == false && System.IO.Directory.Exists(workingDirectory) == false)
+                throw new InvalidOperationException($"The given working directory '{this.WorkingDirectory}' does not exist.");
+
             var startInfo = new ProcessStartInfo
             {
                 FileName = ReplaceVariablesInString(ShellCommand, variables),
                 Arguments = ReplaceVariablesInString($"-c \"{elevationPrefix} {Command} {Arguments}\"", variables),
-                WorkingDirectory = this.WorkingDirectory,
+                WorkingDirectory = ReplaceVariablesInString(this.WorkingDirectory, variables),
                 RedirectStandardOutput = this.RedirectStandardOutput
             };
 
@@ -80,15 +84,6 @@ namespace Cootstrap.Modules
         /// Gives the module the chance to properly initialize itself before execution.
         /// </summary>
         protected abstract void PrepareForExecution();
-
-        protected virtual string ReplaceVariablesInString(string s, IDictionary<string, string> variables)
-        {
-            foreach(var pair in variables)
-            {
-                s = s.Replace($"${pair.Key}", pair.Value);
-            }
-            return s;
-        }
 
         private string CreateProcessCommand()
         {

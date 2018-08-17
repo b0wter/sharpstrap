@@ -67,6 +67,13 @@ namespace Cootstrap.Modules
         public IDictionary<string, string> GlobalVariables { get; set; } = new Dictionary<string, string>();
 
         /// <summary>
+        /// List of packages that will be run at the end of the bootstrap process. Regular packages may not depend on these.
+        /// </summary>
+        /// <typeparam name="Package"></typeparam>
+        /// <returns></returns>
+        public List<Package> CleanupPackages { get; set; } = new List<Package>();
+
+        /// <summary>
         /// Initializes and runs the bootstrap process.
         /// </summary>
         /// <param name="input">Device that provides user input.</param>
@@ -85,8 +92,9 @@ namespace Cootstrap.Modules
             if(InitPackageOperation(overrideUserDecision))
             {
                 LoadSolvedPackagesFromLog();
-                await RunAllPackages();
+                await RunAllPackages(this.Packages);
                 LogSolvedPackages();
+                await RunAllPackages(this.CleanupPackages);
             }
             else
             {
@@ -114,8 +122,8 @@ namespace Cootstrap.Modules
             if(string.IsNullOrWhiteSpace(LogFilename) == false && System.IO.File.Exists(LogFilename))
             {
                 var finishedPackageNames = System.IO.File.ReadAllLines(LogFilename).Where(l => string.IsNullOrWhiteSpace(l) == false);
-                var finishedPackages = finishedPackageNames.Select(name => this.Packages.Find(p => p.Name == name)).ToList();
-                this.Packages.RemoveAll(p => finishedPackages.Contains(p));
+                var finishedPackages = finishedPackageNames.Select(name => this.Packages.Find(p => p.Name == name && p.IgnoreAlreadySolved == false)).Where(x => x != null).ToList();
+                this.Packages.RemoveAll(p => finishedPackages.Contains(p) && p.IgnoreAlreadySolved == false);
                 this.solvedPackages.AddRange(finishedPackages);
 
                 output.WriteLine("The following packages have already been finished:");
@@ -185,14 +193,14 @@ namespace Cootstrap.Modules
         /// Runs each package separately, taking their prerequisites into account.
         /// </summary>
         /// <returns></returns>
-        private async Task RunAllPackages()
+        private async Task RunAllPackages(List<Package> packages)
         {
-            while(this.Packages.Count() != 0)
+            while(packages.Count() != 0)
             {
                 var solved = new List<Package>();
                 var unsolved = new List<Package>();
 
-                var solvablePackages = this.Packages
+                var solvablePackages = packages
                                            .Where(p => ValidateRequirementsMet(p))
                                            .ToList();
 
@@ -203,15 +211,14 @@ namespace Cootstrap.Modules
 
                         // Add the package to the solved dependencies so that the depending packages can be run.
                         //
-                        output.WriteLine($"Installed '{package.Name}' succesfully.");
                         solved.Add(package);
-                        this.Packages.Remove(package);
+                        packages.Remove(package);
                     }
-                    catch(Exception ex)
+                    catch(ShellCommandException ex)
                     {
                         output.WriteLine($"Encountered an {ex.GetType().Name} with: {ex.Message}");
                         unsolved.Add(package);
-                        this.Packages.Remove(package);
+                        packages.Remove(package);
                         if(package.IsCritical)
                         {
                             output.WriteLine("Bootstrapping won't continue as this is a critical package.");
@@ -259,7 +266,7 @@ namespace Cootstrap.Modules
         /// <returns></returns>
         private bool ValidateRequirementsMet(Package p)
         {
-            return p.Requires.Except(this.solvedPackages.Select(d => d.Name)).Count() == 0;
+            return p.Requires.Except(this.solvedPackages.Where(d => d.Name != null).Select(d => d.Name)).Count() == 0;
         }
     }
 }

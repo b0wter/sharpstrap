@@ -9,7 +9,7 @@ namespace Cootstrap.Modules
         protected const string WorkOnParentsArguments = "-p";
 
         protected abstract string FolderCommand { get; }
-        public IEnumerable<string> FolderNames { get; set; }
+        public IEnumerable<string> Foldernames { get; set; }
         public bool WorkOnParents { get; set; }
 
         public FolderModule()
@@ -19,7 +19,7 @@ namespace Cootstrap.Modules
 
         public FolderModule(params string[] folderNames)
         {
-            this.FolderNames = folderNames;
+            this.Foldernames = folderNames;
         }
 
         public FolderModule(bool workOnParents, params string[] folderNames)
@@ -36,16 +36,16 @@ namespace Cootstrap.Modules
 
         protected void ThrowIfNoFolderSet()
         {
-            if(this.FolderNames.Count() == 0)
+            if(this.Foldernames.Count() == 0)
                 throw new InvalidOperationException("At least one folder name must be supplied to create this module.");
         }
 
         protected string CreateArgument()
         {
             if(this.WorkOnParents)
-                return $"{WorkOnParentsArguments} {string.Join(" ", this.FolderNames)}";
+                return $"{WorkOnParentsArguments} {string.Join(" ", this.Foldernames)}";
             else
-                return $"{string.Join(" ", this.FolderNames)}";
+                return $"{string.Join(" ", this.Foldernames)}";
         }
     }
 

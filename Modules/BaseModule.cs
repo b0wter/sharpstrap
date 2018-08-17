@@ -28,11 +28,32 @@ namespace Cootstrap.Modules
         public bool AllowError { get; set; }
 
         /// <summary>
+        /// Skips the replacement of variables for this module.
+        /// </summary>
+        /// <value></value>
+        protected virtual bool SkipVariableReplacement { get; } = false;
+
+        /// <summary>
         /// Can be overriden to supply arguments back to the package. Default implementation yields an empty dictionary.
         /// </summary>
         protected virtual IDictionary<string, string> ReturnVariables()
         {
             return new Dictionary<string, string>();
+        }
+
+        protected virtual string ReplaceVariablesInString(string s, IDictionary<string, string> variables)
+        {
+            if(string.IsNullOrWhiteSpace(s))
+                return s;
+
+            if(this.SkipVariableReplacement)
+                return s;
+
+            foreach(var pair in variables)
+            {
+                s = s.Replace($"${pair.Key}", pair.Value);
+            }
+            return s;
         }
     }
 }

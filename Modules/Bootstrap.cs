@@ -204,6 +204,14 @@ namespace Cootstrap.Modules
                                            .Where(p => ValidateRequirementsMet(p))
                                            .ToList();
 
+                if (solvablePackages.Count == 0)
+                {
+                    output.SetForegroundColor(ConsoleColor.Red);
+                    output.WriteLine($"There are {packages.Count()} packages left to work on but their requirements have not been met.");
+                    output.ResetColors();
+                    return;
+                }
+
                 foreach(var package in solvablePackages)
                 {
                     try{

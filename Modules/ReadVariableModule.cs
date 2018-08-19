@@ -16,7 +16,6 @@ namespace Cootstrap.Modules
         protected override bool RedirectStandardOutput => true;
         protected override bool SkipVariableReplacement => true;
 
-        public string Prompt { get; set; }
         public string VariableName { get; set; }
 
         public ReadVariableModule()
@@ -28,12 +27,6 @@ namespace Cootstrap.Modules
             : this()
         {
             this.VariableName = variableName;
-        }
-
-        public ReadVariableModule(string variableName, string prompt)
-            : this(variableName)
-        {
-            this.Prompt = prompt;
         }
 
         protected override void PrepareForExecution()

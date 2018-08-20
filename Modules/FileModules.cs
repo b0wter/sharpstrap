@@ -57,7 +57,7 @@ namespace Cootstrap.Modules
         public bool Force{ get; set; } 
         public bool Recursive { get; set; }
 
-        protected override void PrepareForExecution()
+        protected override void PreExecution(IDictionary<string, string> variables, ColoredTextWriter output)
         {
             var argument = GetSpecialArguments() + " " + string.Join(" ", this.Filenames);
             SetCommandAndArguments(FileOperation, argument);
@@ -95,7 +95,7 @@ namespace Cootstrap.Modules
             this.Target = target;
         }
 
-        protected override void PrepareForExecution()
+        protected override void PreExecution(IDictionary<string, string> variables, ColoredTextWriter output)
         {
             var argument = GetSpecialArguments() + " " + string.Join(" ", this.Filenames) + " " + Target;
             SetCommandAndArguments(this.FileOperation, argument);

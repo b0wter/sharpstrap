@@ -29,7 +29,7 @@ namespace Cootstrap.Modules
             this.VariableName = variableName;
         }
 
-        protected override void PrepareForExecution()
+        protected override void PreExecution(IDictionary<string, string> variables, ColoredTextWriter output)
         {
             if(string.IsNullOrWhiteSpace(this.VariableName))
                 throw new InvalidOperationException("Cannot run ReadVariableModule without a variable name.");

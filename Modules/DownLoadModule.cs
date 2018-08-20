@@ -23,7 +23,7 @@ namespace Cootstrap.Modules
             this.Target = targetFilename;
         }
 
-        protected override void PrepareForExecution()
+        protected override void PreExecution(System.Collections.Generic.IDictionary<string, string> variables, Helpers.ColoredTextWriter output)
         {
             SetCommandAndArguments(DownloadCommand, CreateArgument());
         }

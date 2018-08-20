@@ -6,7 +6,7 @@ namespace Cootstrap.Modules
     {
         private const string GitCommand = "git";
 
-        protected override void PrepareForExecution()
+        protected override void PreExecution(System.Collections.Generic.IDictionary<string, string> variables, Helpers.ColoredTextWriter output)
         {
             SetCommandAndArguments(GitCommand, CreateArgument());
         }

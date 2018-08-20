@@ -55,7 +55,9 @@ namespace Cootstrap.Modules
             foreach(var variable in variables)
                 this.Variables.Add(variable.Key, variable.Value);
 
+            output.SetForegroundColor(ConsoleColor.Yellow);
             output.WriteLine($"Starting work on '{Name}'");
+            output.ResetColors();
 
             foreach(var module in Modules)
             {

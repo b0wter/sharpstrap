@@ -36,7 +36,6 @@ namespace Cootstrap
                     Console.WriteLine("Encountered an exception while trying to parse the yaml file:");
                     Console.WriteLine(ex.Message);
                 }
-
             }
         }
 

@@ -9,13 +9,9 @@ namespace Cootstrap.Modules
         public string Text { get; set; }
         public string Color { get; set; } = "White";
 
-        protected override void PrepareForExecution()
-        {
-            SetCommandAndArguments(PromptCommand, Text);
-        }
-
         protected override void PreExecution(System.Collections.Generic.IDictionary<string, string> variables, Helpers.ColoredTextWriter output)
         {
+            SetCommandAndArguments(PromptCommand, Text);
             var color = ColorNameToConsoleColor(this.Color);
             output.SetForegroundColor(color);
         }

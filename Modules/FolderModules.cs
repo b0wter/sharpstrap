@@ -28,7 +28,7 @@ namespace Cootstrap.Modules
             this.WorkOnParents = workOnParents;
         }
 
-        protected override void PrepareForExecution()
+        protected override void PreExecution(IDictionary<string, string> variables, Helpers.ColoredTextWriter output)
         {
             ThrowIfNoFolderSet();
             SetCommandAndArguments(FolderCommand, CreateArgument());

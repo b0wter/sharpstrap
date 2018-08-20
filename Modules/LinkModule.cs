@@ -23,7 +23,7 @@ namespace Cootstrap.Modules
             this.Target = target;
         }
 
-        protected override void PrepareForExecution()
+        protected override void PreExecution(System.Collections.Generic.IDictionary<string, string> variables, Helpers.ColoredTextWriter output)
         {
             if(string.IsNullOrWhiteSpace(Source))
                 throw new InvalidOperationException("Cannot use LinkModule without a Source.");

@@ -15,25 +15,27 @@ namespace Cootstrap.Modules
         /// List of package names to work with.
         /// </summary>
         /// <value></value>
-        public IList<string> PackageNames { get; set; }
+        public IList<string> PackageNames { get; set; } = new List<string>();
         /// <summary>
         /// File to load the PackageNames from.
         /// </summary>
         /// <value></value>
         public string SourceFile { get; set; }
 
-        protected void AddPackagesFromFile()
+        protected void AddPackagesFromFile(IDictionary<string, string> variables)
         {
             if(SourceFile.IsNullOrWhiteSpace())
                 return;
 
+            var filename = ReplaceVariablesInString(this.SourceFile, variables);
+
             if(PackageNames != null)
                 PackageNames = new List<string>();
 
-            if(System.IO.File.Exists(SourceFile) == false)
-                throw new ArgumentException($"The source file '{SourceFile}' for a '{this.GetType().Name}' does not exist.");
+            if(System.IO.File.Exists(filename) == false)
+                throw new ArgumentException($"The source file '{filename}' for a '{this.GetType().Name}' does not exist.");
 
-            var names = System.IO.File.ReadAllLines(SourceFile);
+            var names = System.IO.File.ReadAllLines(filename);
             foreach(var name in names)
                 PackageNames.Add(name);
         }
@@ -48,7 +50,7 @@ namespace Cootstrap.Modules
             this.RequiresElevation = true;
         }
 
-        protected override void PrepareForExecution()
+        protected override void PreExecution(IDictionary<string, string> variables, ColoredTextWriter output)
         {
             SetCommandAndArguments(PackageManagerCommand, PackageManagerArgument);
         }
@@ -71,8 +73,9 @@ namespace Cootstrap.Modules
             this.RequiresElevation = true;
         }
 
-        protected override void PrepareForExecution()
+        protected override void PreExecution(IDictionary<string, string> variables, ColoredTextWriter output)
         {
+            AddPackagesFromFile(variables);            
             this.SetCommandAndArguments(PackageManagerCommand, CreateArgument()); 
         }
 
@@ -99,8 +102,9 @@ namespace Cootstrap.Modules
             this.Arguments += " " + string.Join(" ", packageNames);
         }
 
-        protected override void PrepareForExecution()
+        protected override void PreExecution(IDictionary<string, string> variables, ColoredTextWriter output)
         {
+            AddPackagesFromFile(variables);            
             this.SetCommandAndArguments(PackageManagerCommand, CreateArgument()); 
         }
 
@@ -128,7 +132,7 @@ namespace Cootstrap.Modules
             this.RequiresElevation = true;
         }
 
-        protected override void PrepareForExecution()
+        protected override void PreExecution(IDictionary<string, string> variables, ColoredTextWriter output)
         {
             SetCommandAndArguments(PackageManagerCommand, CreateArgument());
         }
@@ -157,7 +161,7 @@ namespace Cootstrap.Modules
             this.Url = url;
         }
 
-        protected override void PrepareForExecution()
+        protected override void PreExecution(IDictionary<string, string> variables, ColoredTextWriter output)
         {
             if(string.IsNullOrWhiteSpace(this.Url))
                 throw new InvalidOperationException("Cannot import an empty url.");

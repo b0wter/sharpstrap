@@ -18,7 +18,7 @@ namespace Cootstrap.Modules
             this.Path = path;
         }
 
-        protected override void PrepareForExecution()
+        protected override void PreExecution(System.Collections.Generic.IDictionary<string, string> variables, Helpers.ColoredTextWriter output)
         {
             SetCommandAndArguments(ListCommand, Path);
         }

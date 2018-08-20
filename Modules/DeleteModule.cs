@@ -26,7 +26,7 @@ namespace Cootstrap.Modules
             this.ForceRemoval = force;
         }
 
-        protected override void PrepareForExecution()
+        protected override void PreExecution(IDictionary<string, string> variables, Helpers.ColoredTextWriter output)
         {
             SetCommandAndArguments(DeleteCommand, CreateArgument());
         }

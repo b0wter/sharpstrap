@@ -18,7 +18,7 @@ namespace Cootstrap.Modules
             //
         }
 
-        protected override void PrepareForExecution()
+        protected override void PreExecution(System.Collections.Generic.IDictionary<string, string> variables, Helpers.ColoredTextWriter output)
         {
             if(string.IsNullOrWhiteSpace(this.Command))
                 throw new InvalidOperationException("Cannot run a shell command with a command.");

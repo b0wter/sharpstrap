@@ -169,4 +169,31 @@ namespace Cootstrap.Modules
             SetCommandAndArguments(PackageManagerCommand, PackageManagerArgument + " " + this.Url);
         }
     }
+
+    public class RepositoryImportModule : ShellModule
+    {
+        private const string PackageManagerCommand = "rpm";
+        private const string PackageManagerArgument = "-Uvh";
+
+        public string Url { get; set; }
+
+        public RepositoryImportModule()
+        {
+            //
+        }
+
+        public RepositoryImportModule(string url)
+            : this()
+        {
+            this.Url = url;
+        }
+
+        protected override void PreExecution(IDictionary<string, string> variables, ColoredTextWriter output)
+        {
+            if(string.IsNullOrWhiteSpace(this.Url))
+                throw new InvalidOperationException("Cannot import an empty url.");
+
+            SetCommandAndArguments(PackageManagerCommand, PackageManagerArgument + " " + this.Url);
+        }
+    }
 }

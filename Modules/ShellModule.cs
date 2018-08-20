@@ -53,7 +53,6 @@ namespace Cootstrap.Modules
             var startInfo = new ProcessStartInfo
             {
                 FileName = ReplaceVariablesInString(ShellCommand, variables),
-                //Arguments = ReplaceVariablesInString($"-c \"{elevationPrefix} {Command} {Arguments}\"", variables),
                 Arguments = ReplaceVariablesInString($"-c {CreateProcessCommand()}", variables),
                 WorkingDirectory = ReplaceVariablesInString(this.WorkingDirectory, variables),
                 RedirectStandardOutput = this.RedirectStandardOutput

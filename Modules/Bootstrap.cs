@@ -142,14 +142,13 @@ namespace Cootstrap.Modules
             while(requirements.Count() != 0)
             {
                 var solvable = requirements.Where(p => p.Requires.Except(solved.Where(d => d.Name != null).Select(d => d.Name)).Count() == 0);
+                if(solvable.Count() == 0)
+                    throw new ArgumentException("The given package combination cannot be solved.");
                 
                 foreach(var s in solvable)
                     solved.Add(s);
 
                 requirements.RemoveAll(r => solvable.Contains(r));
-
-                if(solvable.Count() == 0)
-                    throw new ArgumentException("The given package combination cannot be solved.");
             }
         }
 

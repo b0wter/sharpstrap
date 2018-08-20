@@ -20,6 +20,11 @@ namespace Cootstrap.Modules
         /// </summary>
         /// <value></value>
         public bool LastLineOnly { get; set; } = true;
+        /// <summary>
+        /// Gets/sets wether empty lines at the end of the output will be trimmed.
+        /// </summary>
+        /// <value></value>
+        public bool TrimEmpty { get; set; } = true;
 
         protected override void PreExecution(IDictionary<string, string> variables, ColoredTextWriter output)
         {
@@ -31,14 +36,20 @@ namespace Cootstrap.Modules
         {
             var dict = new Dictionary<string, string>(1);
 
+            while(string.IsNullOrWhiteSpace(this.Output.Last()) && this.TrimEmpty)
+                this.Output = this.Output.Reverse().Skip(1).Reverse().ToList();
+
+            if(this.Output == null || this.Output.Count == 0)
+                throw new ShellCommandException(new List<string>(1), $"{nameof(ShellEvaluateModule)} has no output.");
+
             if(LastLineOnly)
             {
-                var squashedOutput = string.Join(Environment.NewLine, this.Output);
-                dict.Add(this.VariableName, squashedOutput);
+                dict.Add(this.VariableName, this.Output.Reverse().Skip(TrimEmpty ? 0 : 1).First());
             }
             else
             {
-                dict.Add(this.VariableName, this.Output.Last());
+                var squashedOutput = string.Join(Environment.NewLine, this.Output);
+                dict.Add(this.VariableName, squashedOutput);
             }
 
             return dict;

@@ -108,6 +108,8 @@ namespace Cootstrap.Modules
                 // Package installation was cancelled.
                 // Nothing to do here.
             }
+
+            PrintResults();
         }
 
         private void AddDefaultVariables()
@@ -325,6 +327,36 @@ namespace Cootstrap.Modules
         private bool ValidateRequirementsMet(Package p, IEnumerable<Package> solvedPackages)
         {
             return p.Requires.Except(solvedPackages.Where(d => d.Name != null).Select(d => d.Name)).Count() == 0;
+        }
+
+        private void PrintResults()
+        {
+            //output.WriteLine($"{"NAME".PadRight(PackageNameWidth)} {"OPS".PadRight(PackageModuleCountWidth)} {"CRITICAL".PadRight(PackageIsCriticalWidth)} DESCRIPTION");
+
+            output.WriteLine();
+            output.WriteLine($"{this.Packages.Count} packages have not been run, most likely due to unmet requirements.");
+            output.WriteLine();
+            output.WriteLine($"{"NAME".PadRight(PackageNameWidth)} {"RESULT".PadRight(PackageModuleCountWidth)}");
+            output.WriteLine(new String('=', this.columnCount));
+
+            output.SetForegroundColor(ConsoleColor.Green);
+            foreach(var p in this.solvedPackages)
+            {
+                output.Write($"{(p?.Name).PadRight(PackageNameWidth)}");
+                output.SetForegroundColor(ConsoleColor.Green);
+                output.WriteLine("    YES");
+                output.ResetColors();
+            }
+
+            foreach(var p in this.unsolvedPackages)
+            {
+                output.Write($"{(p?.Name).PadRight(PackageNameWidth)}");
+                output.SetForegroundColor(ConsoleColor.Red);
+                output.WriteLine("     NO");
+                output.ResetColors();
+            }
+
+            output.ResetColors();
         }
     }
 }

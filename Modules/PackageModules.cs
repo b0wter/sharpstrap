@@ -1,15 +1,49 @@
 using System;
 using System.Collections.Generic;
+using Cootstrap.Helpers;
 
 namespace Cootstrap.Modules
 {
-    public class PackageUpdateModule : ShellModule
+    public abstract class PackageBaseModule : ShellModule
     {
-        private const string PackageManagerCommand = "dnf";
+        protected const string PackageManagerCommand = "dnf";
+    }
+
+    public abstract class PackageWithPackageNameBaseModule : PackageBaseModule
+    {
+        /// <summary>
+        /// List of package names to work with.
+        /// </summary>
+        /// <value></value>
+        public IList<string> PackageNames { get; set; }
+        /// <summary>
+        /// File to load the PackageNames from.
+        /// </summary>
+        /// <value></value>
+        public string SourceFile { get; set; }
+
+        protected void AddPackagesFromFile()
+        {
+            if(SourceFile.IsNullOrWhiteSpace())
+                return;
+
+            if(PackageNames != null)
+                PackageNames = new List<string>();
+
+            if(System.IO.File.Exists(SourceFile) == false)
+                throw new ArgumentException($"The source file '{SourceFile}' for a '{this.GetType().Name}' does not exist.");
+
+            var names = System.IO.File.ReadAllLines(SourceFile);
+            foreach(var name in names)
+                PackageNames.Add(name);
+        }
+    }
+
+    public class PackageUpdateModule : PackageBaseModule
+    {
         private const string PackageManagerArgument = "update -y";
 
         public PackageUpdateModule() 
-            : base(PackageManagerCommand, PackageManagerArgument)
         {
             this.RequiresElevation = true;
         }
@@ -20,12 +54,10 @@ namespace Cootstrap.Modules
         }
     }
 
-    public class PackageInstallModule : ShellModule
+    public class PackageInstallModule : PackageWithPackageNameBaseModule
     {
-        private const string PackageManagerCommand = "dnf";
         private const string PackageManagerArgument = "install -y";
 
-        public IEnumerable<string> PackageNames { get; set; }
 
         public PackageInstallModule()
             : base()
@@ -34,11 +66,9 @@ namespace Cootstrap.Modules
         }
 
         public PackageInstallModule(params string[] packageNames) 
-            : base(PackageManagerCommand, PackageManagerArgument)
+            : this()
         {
             this.RequiresElevation = true;
-            this.Arguments += " " + string.Join(" ", packageNames);
-            this.PackageNames = packageNames;
         }
 
         protected override void PrepareForExecution()
@@ -52,12 +82,9 @@ namespace Cootstrap.Modules
         }
     }
 
-    public class PackageRemovalModule : ShellModule
+    public class PackageRemovalModule : PackageWithPackageNameBaseModule
     {
-        private const string PackageManagerCommand = "dnf";
         private const string PackageManagerArgument = "remove -y";
-
-        public IEnumerable<string> PackageNames { get; set; }
 
         public PackageRemovalModule()
             : base()
@@ -66,7 +93,7 @@ namespace Cootstrap.Modules
         }
         
         public PackageRemovalModule(params string[] packageNames) 
-            : base(PackageManagerCommand, PackageManagerArgument)
+            : this()
         {
             this.RequiresElevation = true;
             this.Arguments += " " + string.Join(" ", packageNames);
@@ -83,9 +110,8 @@ namespace Cootstrap.Modules
         }
     }
 
-    public class PackageImportModule : ShellModule
+    public class PackageImportModule : PackageBaseModule
     {
-        private const string PackageManagerCommand = "dnf";
         private const string PackageManagerArgument = "config-manager --add-repo";
 
         public string Url { get; set; }
@@ -97,10 +123,9 @@ namespace Cootstrap.Modules
         }
 
         public PackageImportModule(string url)
-            : base(PackageManagerCommand, PackageManagerArgument)
+            : this()
         {
             this.RequiresElevation = true;
-            this.Arguments += " " + url;
         }
 
         protected override void PrepareForExecution()
@@ -127,6 +152,7 @@ namespace Cootstrap.Modules
         }
 
         public KeyImportModule(string url) 
+            : this()
         {
             this.Url = url;
         }

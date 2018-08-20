@@ -88,6 +88,13 @@ namespace Cootstrap.Modules
             this.columnCount = columnCount;
 
             AddDefaultVariables();
+            try {
+                ValidatePackages();
+                DryRunDependencies();
+            } catch (ArgumentException ex) {
+                output.WriteLine($"Execution stopped because: {ex.Message}");
+                return;
+            }
 
             if(InitPackageOperation(overrideUserDecision))
             {
@@ -111,6 +118,50 @@ namespace Cootstrap.Modules
             var home = Environment.GetEnvironmentVariable(envHome);
 
             this.GlobalVariables.Add("homedir", home);
+            this.GlobalVariables.Add("~", home);
+        }
+
+        private void ValidatePackages()
+        {
+            AddMissingNamesForAllPackages();
+            CheckExistanceOfRequirements();
+        }
+
+        private void AddMissingNamesForAllPackages()
+        {
+            var packagesWithoutName = this.Packages.Where(p => string.IsNullOrWhiteSpace(p.Name)).ToList();
+            for(int i = 0; i < packagesWithoutName.Count; ++i)
+                packagesWithoutName[i].Name = $"<Unnamed Package #{i}>";
+        }
+
+        private void DryRunDependencies()
+        {
+            var requirements = this.Packages.Select(p => (p.Name, p.Requires)).ToList();
+            var solved = requirements.Where(r => r.Requires.Any() == false).ToList();
+
+            while(requirements.Count() != 0)
+            {
+                var solvable = requirements.Where(p => p.Requires.Except(solved.Where(d => d.Name != null).Select(d => d.Name)).Count() == 0);
+                
+                foreach(var s in solvable)
+                    solved.Add(s);
+
+                requirements.RemoveAll(r => solvable.Contains(r));
+
+                if(solvable.Count() == 0)
+                    throw new ArgumentException("The given package combination cannot be solved.");
+            }
+        }
+
+        private void CheckExistanceOfRequirements()
+        {
+            var requirements = this.Packages.SelectMany(p => p.Requires).Distinct();
+            var names = this.Packages.Select(p => p.Name);
+
+            var nonExistingNames = requirements.Where(r => names.Contains(r) == false);
+
+            if(nonExistingNames.Count() != 0)
+                throw new ArgumentException($"The following requirements are listed but do not exist: {string.Join(", ", nonExistingNames)}.");
         }
 
         /// <summary>
@@ -201,7 +252,7 @@ namespace Cootstrap.Modules
                 var unsolved = new List<Package>();
 
                 var solvablePackages = packages
-                                           .Where(p => ValidateRequirementsMet(p))
+                                           .Where(p => ValidateRequirementsMet(p, this.solvedPackages))
                                            .ToList();
 
                 if (solvablePackages.Count == 0)
@@ -272,9 +323,9 @@ namespace Cootstrap.Modules
         /// </summary>
         /// <param name="p"></param>
         /// <returns></returns>
-        private bool ValidateRequirementsMet(Package p)
+        private bool ValidateRequirementsMet(Package p, IEnumerable<Package> solvedPackages)
         {
-            return p.Requires.Except(this.solvedPackages.Where(d => d.Name != null).Select(d => d.Name)).Count() == 0;
+            return p.Requires.Except(solvedPackages.Where(d => d.Name != null).Select(d => d.Name)).Count() == 0;
         }
     }
 }

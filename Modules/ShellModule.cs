@@ -78,7 +78,7 @@ namespace Cootstrap.Modules
 
         private string CreateProcessCommand()
         {
-            return $"-c \"{ElevationPrefix} {Command} {Arguments}\"";
+            return $"\"{(this.RequiresElevation ? ElevationPrefix : string.Empty)} {Command} {Arguments}\"";
         }
 
         protected Task<int> RunProcessAsTask(ProcessStartInfo startInfo)

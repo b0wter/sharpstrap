@@ -36,11 +36,11 @@ namespace Cootstrap.Modules
         {
             var dict = new Dictionary<string, string>(1);
 
-            while(string.IsNullOrWhiteSpace(this.Output.Last()) && this.TrimEmpty)
-                this.Output = this.Output.Reverse().Skip(1).Reverse().ToList();
-
             if(this.Output == null || this.Output.Count == 0)
                 throw new ShellCommandException(new List<string>(1), $"{nameof(ShellEvaluateModule)} has no output.");
+
+            while(string.IsNullOrWhiteSpace(this.Output.Last()) && this.TrimEmpty)
+                this.Output = this.Output.Reverse().Skip(1).Reverse().ToList();
 
             if(LastLineOnly)
             {

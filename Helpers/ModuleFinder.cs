@@ -15,7 +15,7 @@ namespace Cootstrap.Helpers
 
         public IEnumerable<(string Name, Type Type)> GetAllModulesForModulesNamespace()
         {
-            var types = GetAllTypes("Modules");
+            var types = GetAllTypes("Cootstrap.Modules");
 
             var tuples = new List<(string Name, Type Type)>(types.Count());
             foreach(var t in types)
@@ -42,6 +42,7 @@ namespace Cootstrap.Helpers
                             t.IsClass == true && 
                             t.IsAbstract == false &&
                             t.Namespace != null &&
+                            t.Name.EndsWith(TrimEnd) &&
                             t.Namespace.EndsWith(name)
                           );
         }

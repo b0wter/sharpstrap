@@ -39,7 +39,7 @@ namespace Cootstrap.Modules
             if(this.Output == null || this.Output.Count == 0)
                 throw new ShellCommandException(new List<string>(1), $"{nameof(ShellEvaluateModule)} has no output.");
 
-            while(string.IsNullOrWhiteSpace(this.Output.Last()) && this.TrimEmpty)
+            while(this.Output.Count > 0 && string.IsNullOrWhiteSpace(this.Output.Last()) && this.TrimEmpty)
                 this.Output = this.Output.Reverse().Skip(1).Reverse().ToList();
 
             if(LastLineOnly)
@@ -53,6 +53,21 @@ namespace Cootstrap.Modules
             }
 
             return dict;
+        }
+
+        private bool IsOutputEmpty()
+        {
+            if(this.Output == null)    
+                return false;
+
+            if(this.TrimEmpty)
+            {
+                return this.Output.Count(line => string.IsNullOrWhiteSpace(line) == false) != 0;
+            }
+            else
+            {
+                return this.Output.Count != 0;
+            }
         }
     }
 }

@@ -59,10 +59,15 @@ namespace Cootstrap.Modules
         /// <returns></returns>
         public List<Package> Packages { get; set; } = new List<Package>();
         /// <summary>
-        /// Filename for the logfile. No file will be written if it's empty.
+        /// Filename for the logfile containing the successful packages. No file will be written if it's empty.
         /// </summary>
         /// <value></value>
-        public string LogFilename { get; set; } = "bootstrap.log";
+        public string SuccessLogFilename { get; set; } = "bootstrap.success";
+        /// <summary>
+        /// Filename for the logfile containing the failed packages. No file will be written if it's empty.
+        /// </summary>
+        /// <value></value>
+        public string ErrorLogFilename { get; set; } = "bootstrap.error";
         /// <summary>
         /// Global variables are injected into every package that is executed.
         /// </summary>
@@ -105,7 +110,8 @@ namespace Cootstrap.Modules
             {
                 LoadSolvedPackagesFromLog();
                 await RunAllPackages(this.Packages);
-                LogSolvedPackages();
+                LogPackagesToFile(this.solvedPackages, SuccessLogFilename);
+                LogPackagesToFile(this.unsolvedPackages, ErrorLogFilename);
                 await RunAllPackages(this.CleanupPackages);
             }
             else
@@ -176,9 +182,9 @@ namespace Cootstrap.Modules
         /// </summary>
         private void LoadSolvedPackagesFromLog()
         {
-            if(string.IsNullOrWhiteSpace(LogFilename) == false && System.IO.File.Exists(LogFilename))
+            if(string.IsNullOrWhiteSpace(SuccessLogFilename) == false && System.IO.File.Exists(SuccessLogFilename))
             {
-                var previouslyRunPackageNames = System.IO.File.ReadAllLines(LogFilename).Where(l => string.IsNullOrWhiteSpace(l) == false);
+                var previouslyRunPackageNames = System.IO.File.ReadAllLines(SuccessLogFilename).Where(l => string.IsNullOrWhiteSpace(l) == false);
                 var previouslyRunPackages = previouslyRunPackageNames.Select(name => this.Packages.Find(p => p.Name == name && p.IgnoreAlreadySolved == false)).Where(x => x != null).ToList();
                 this.Packages.RemoveAll(p => previouslyRunPackages.Contains(p) && p.IgnoreAlreadySolved == false);
                 this.previouslyRunPackages.AddRange(previouslyRunPackages);
@@ -188,7 +194,7 @@ namespace Cootstrap.Modules
                 foreach(var package in previouslyRunPackageNames)
                     output.WriteLine($" * {package}");
                 output.WriteLine();
-                output.WriteLine($"If you want to repeat these steps remove '{LogFilename}'.");
+                output.WriteLine($"If you want to repeat these steps remove '{SuccessLogFilename}'.");
             }
         }
 
@@ -301,24 +307,24 @@ namespace Cootstrap.Modules
         /// <summary>
         /// Writes the contents of <see cref="solvedPackages"/> to the log file.
         /// </summary>
-        private void LogSolvedPackages()
+        private void LogPackagesToFile(IEnumerable<Package> packages, string filename)
         {
-            if(string.IsNullOrWhiteSpace(this.LogFilename))
+            if(string.IsNullOrWhiteSpace(filename))
                 return;
 
             try {
-                System.IO.File.WriteAllLines(LogFilename, this.solvedPackages.Select(p => p.Name));
+                System.IO.File.WriteAllLines(filename, packages.Select(p => p.Name));
             }
             catch(UnauthorizedAccessException)
             {
                 output.SetForegroundColor(ConsoleColor.Red);
-                output.WriteLine($"Could not write log to '{LogFilename} because access was denied!");
+                output.WriteLine($"Could not write log to '{SuccessLogFilename} because access was denied!");
                 output.ResetColors();
             }
             catch(IOException ex)
             {
                 output.SetForegroundColor(ConsoleColor.Red);
-                output.WriteLine($"Could not write log to '{LogFilename} because a general IO exception was raised:");
+                output.WriteLine($"Could not write log to '{SuccessLogFilename} because a general IO exception was raised:");
                 output.ResetColors();
                 output.WriteLine(ex.Message);
             }
@@ -372,14 +378,6 @@ namespace Cootstrap.Modules
                 var packageName = string.IsNullOrWhiteSpace(p?.Name) ? "no name?" : p.Name;
                 var paddedPackageName = packageName.PadRight(PackageNameWidth);
                 output.WriteLine($"{paddedPackageName} {paddedStatus}");
-                /*
-                Console.WriteLine(paddedPackageName);
-                output.Write($"{packageName.PadRight(PackageNameWidth)}");
-                output.SetForegroundColor(resultColor);
-                output.Write(paddedStatus);
-                output.WriteLine();
-                output.ResetColors();
-                */
             }
         }
     }

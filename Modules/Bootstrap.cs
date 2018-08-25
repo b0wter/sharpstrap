@@ -35,6 +35,11 @@ namespace Cootstrap.Modules
         /// <returns></returns>
         private List<Package> unsolvedPackages = new List<Package>();
         /// <summary>
+        /// List of packages that have previously run and will not be run this time.
+        /// </summary>
+        /// <typeparam name="Package"></typeparam>
+        private List<Package> previouslyRunPackages = new List<Package>();
+        /// <summary>
         /// Input device, usually the console.
         /// </summary>
         private TextReader input;
@@ -173,14 +178,14 @@ namespace Cootstrap.Modules
         {
             if(string.IsNullOrWhiteSpace(LogFilename) == false && System.IO.File.Exists(LogFilename))
             {
-                var finishedPackageNames = System.IO.File.ReadAllLines(LogFilename).Where(l => string.IsNullOrWhiteSpace(l) == false);
-                var finishedPackages = finishedPackageNames.Select(name => this.Packages.Find(p => p.Name == name && p.IgnoreAlreadySolved == false)).Where(x => x != null).ToList();
-                this.Packages.RemoveAll(p => finishedPackages.Contains(p) && p.IgnoreAlreadySolved == false);
-                this.solvedPackages.AddRange(finishedPackages);
+                var previouslyRunPackageNames = System.IO.File.ReadAllLines(LogFilename).Where(l => string.IsNullOrWhiteSpace(l) == false);
+                var previouslyRunPackages = previouslyRunPackageNames.Select(name => this.Packages.Find(p => p.Name == name && p.IgnoreAlreadySolved == false)).Where(x => x != null).ToList();
+                this.Packages.RemoveAll(p => previouslyRunPackages.Contains(p) && p.IgnoreAlreadySolved == false);
+                this.previouslyRunPackages.AddRange(previouslyRunPackages);
 
                 output.WriteLine("The following packages have already been finished:");
                 output.WriteLine();
-                foreach(var package in finishedPackageNames)
+                foreach(var package in previouslyRunPackageNames)
                     output.WriteLine($" * {package}");
                 output.WriteLine();
                 output.WriteLine($"If you want to repeat these steps remove '{LogFilename}'.");
@@ -331,32 +336,51 @@ namespace Cootstrap.Modules
 
         private void PrintResults()
         {
-            //output.WriteLine($"{"NAME".PadRight(PackageNameWidth)} {"OPS".PadRight(PackageModuleCountWidth)} {"CRITICAL".PadRight(PackageIsCriticalWidth)} DESCRIPTION");
-
             output.WriteLine();
-            output.WriteLine($"{this.Packages.Count} packages have not been run, most likely due to unmet requirements.");
+            PrintResultSummary();
+            PrintResultHeader();
+            PrintResultsFor(this.previouslyRunPackages, "PREV");
+            PrintResultsFor(this.solvedPackages, "SUCCESS", ConsoleColor.Green);
+            PrintResultsFor(this.unsolvedPackages, "FAILED", ConsoleColor.Red);
+            output.ResetColors();
+        }
+
+        private void PrintResultSummary()
+        {
+            output.WriteLine($"{this.unsolvedPackages.Count} packages have not been run due to errors or unmet requirements.");
+            output.WriteLine($"{this.solvedPackages.Count} packages have been run successfully.");
+            output.WriteLine($"{this.previouslyRunPackages.Count} packages have been run previously and will not be run again.");
+        }
+
+        private void PrintResultHeader()
+        {
             output.WriteLine();
             output.WriteLine($"{"NAME".PadRight(PackageNameWidth)} {"RESULT".PadRight(PackageModuleCountWidth)}");
             output.WriteLine(new String('=', this.columnCount));
+        }
 
-            output.SetForegroundColor(ConsoleColor.Green);
-            foreach(var p in this.solvedPackages)
+        private void PrintResultsFor(IEnumerable<Package> packages, string status, ConsoleColor resultColor = ConsoleColor.White)
+        {
+            const int columnWidth = 7;
+            string paddedStatus = status.PadRight(columnWidth).ToUpper();
+            if(paddedStatus.Length > columnWidth)
+                paddedStatus = paddedStatus.Substring(0, columnWidth - 3) + "...";
+
+
+            foreach(var p in packages)
             {
-                output.Write($"{(p?.Name).PadRight(PackageNameWidth)}");
-                output.SetForegroundColor(ConsoleColor.Green);
-                output.WriteLine("    YES");
+                var packageName = string.IsNullOrWhiteSpace(p?.Name) ? "no name?" : p.Name;
+                var paddedPackageName = packageName.PadRight(PackageNameWidth);
+                output.WriteLine($"{paddedPackageName} {paddedStatus}");
+                /*
+                Console.WriteLine(paddedPackageName);
+                output.Write($"{packageName.PadRight(PackageNameWidth)}");
+                output.SetForegroundColor(resultColor);
+                output.Write(paddedStatus);
+                output.WriteLine();
                 output.ResetColors();
+                */
             }
-
-            foreach(var p in this.unsolvedPackages)
-            {
-                output.Write($"{(p?.Name).PadRight(PackageNameWidth)}");
-                output.SetForegroundColor(ConsoleColor.Red);
-                output.WriteLine("     NO");
-                output.ResetColors();
-            }
-
-            output.ResetColors();
         }
     }
 }

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
-using Cootstrap.Helpers;
+using SharpStrap.Helpers;
 using System.Runtime.InteropServices;
 
-namespace Cootstrap.Modules
+namespace SharpStrap.Modules
 {
     public class Bootstrap
     {

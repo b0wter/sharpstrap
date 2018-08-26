@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace Cootstrap.Helpers
+namespace SharpStrap.Helpers
 {
     public abstract class ColoredTextWriter : TextWriter
     {

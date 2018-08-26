@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Cootstrap.Helpers
+namespace SharpStrap.Helpers
 {
     public class ShellCommandException : Exception
     {

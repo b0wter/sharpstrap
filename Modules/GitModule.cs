@@ -1,6 +1,6 @@
 using System;
 
-namespace Cootstrap.Modules
+namespace SharpStrap.Modules
 {
     public abstract class GitModule : ShellModule
     {

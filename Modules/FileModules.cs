@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Cootstrap.Helpers;
+using SharpStrap.Helpers;
 
-namespace Cootstrap.Modules
+namespace SharpStrap.Modules
 {
     public abstract class FileModule : ShellModule
     {

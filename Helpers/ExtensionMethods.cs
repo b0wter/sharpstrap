@@ -1,6 +1,6 @@
 using System;
 
-namespace Cootstrap.Helpers
+namespace SharpStrap.Helpers
 {
     public static class ExtensionMethods
     {

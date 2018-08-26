@@ -1,6 +1,6 @@
 using System;
 
-namespace Cootstrap.Modules
+namespace SharpStrap.Modules
 {
     /// <summary>
     /// Downloads remote files and saves them locally.

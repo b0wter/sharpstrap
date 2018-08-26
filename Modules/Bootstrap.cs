@@ -109,6 +109,7 @@ namespace Cootstrap.Modules
             if(InitPackageOperation(overrideUserDecision))
             {
                 LoadSolvedPackagesFromLog();
+                PrintPackageLogSummary();
                 await RunAllPackages(this.Packages);
                 LogPackagesToFile(this.solvedPackages, SuccessLogFilename);
                 LogPackagesToFile(this.unsolvedPackages, ErrorLogFilename);
@@ -196,6 +197,17 @@ namespace Cootstrap.Modules
                 output.WriteLine();
                 output.WriteLine($"If you want to repeat these steps remove '{SuccessLogFilename}'.");
             }
+        }
+
+        private void PrintPackageLogSummary()
+        {
+            output.WriteLine($"The following packages have been finished previously and will not be run:");
+            foreach(var package in this.previouslyRunPackages)
+                output.WriteLine(package.Name);
+
+            output.WriteLine($"The following packages will be run:");
+            foreach(var package in Packages)
+                output.WriteLine(package.Name);
         }
 
         /// <summary>

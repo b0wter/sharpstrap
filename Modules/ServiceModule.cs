@@ -26,17 +26,17 @@ namespace Cootstrap.Modules
 
         protected override void PreExecution(IDictionary<string, string> variables, ColoredTextWriter output)
         {
-            this.SetCommandAndArguments(ServiceCommand, this.ServiceSubCommand + String.Join(" ", this.ServiceNames));
+            this.SetCommandAndArguments(ServiceCommand, this.ServiceSubCommand + " " + String.Join(" ", this.ServiceNames));
         }
     }
 
-    public class StartServiceModule : ServiceModule
+    public class ServiceStartModule : ServiceModule
     {
         protected override string ServiceSubCommand => "start";
 
     }
 
-    public class StopServiceModule : ServiceModule
+    public class ServiceStopModule : ServiceModule
     {
         protected override string ServiceSubCommand => "stop";
 

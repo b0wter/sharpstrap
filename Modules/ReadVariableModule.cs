@@ -6,6 +6,9 @@ using Cootstrap.Helpers;
 
 namespace Cootstrap.Modules
 {
+    /// <summary>
+    /// Read a single variable from the command prompt (user input).
+    /// </summary>
     public class ReadVariableModule : ShellModule
     {
         private const string ReadCommand = "read";
@@ -16,6 +19,9 @@ namespace Cootstrap.Modules
         protected override bool RedirectStandardOutput => true;
         protected override bool SkipVariableReplacement => true;
 
+        /// <summary>
+        /// Name of the new variable.
+        /// </summary>
         public string VariableName { get; set; }
 
         public ReadVariableModule()

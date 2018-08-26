@@ -41,6 +41,9 @@ namespace Cootstrap.Modules
         }
     }
 
+    /// <summary>
+    /// Updates currently installed packages.
+    /// </summary>
     public class PackageUpdateModule : PackageBaseModule
     {
         private const string PackageManagerArgument = "update -y";
@@ -56,6 +59,9 @@ namespace Cootstrap.Modules
         }
     }
 
+    /// <summary>
+    /// Installs a set of packages.
+    /// </summary>
     public class PackageInstallModule : PackageWithPackageNameBaseModule
     {
         private const string PackageManagerArgument = "install -y";
@@ -85,6 +91,9 @@ namespace Cootstrap.Modules
         }
     }
 
+    /// <summary>
+    /// Removes a set of packages.
+    /// </summary>
     public class PackageRemovalModule : PackageWithPackageNameBaseModule
     {
         private const string PackageManagerArgument = "remove -y";
@@ -114,6 +123,9 @@ namespace Cootstrap.Modules
         }
     }
 
+    /// <summary>
+    /// Imports a repository using the package manager (dnf).
+    /// </summary>
     public class PackageImportModule : PackageBaseModule
     {
         private const string PackageManagerArgument = "config-manager --add-repo";
@@ -143,6 +155,9 @@ namespace Cootstrap.Modules
         }
     }
 
+    /// <summary>
+    /// Import keys into the local storage.
+    /// </summary>
     public class KeyImportModule : ShellModule
     {
         private const string PackageManagerCommand = "rpm";
@@ -170,6 +185,9 @@ namespace Cootstrap.Modules
         }
     }
 
+    /// <summary>
+    /// Import a repository using rpm.
+    /// </summary>
     public class RepositoryImportModule : ShellModule
     {
         private const string PackageManagerCommand = "rpm";

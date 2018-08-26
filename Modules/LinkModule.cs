@@ -2,13 +2,26 @@ using System;
 
 namespace Cootstrap.Modules
 {
+    /// <summary>
+    /// Creates a filesystem link.
+    /// </summary>
     public class LinkModule : ShellModule
     {
         private const string LinkCommand = "ln";
         private const string UseSymbolicLinkArgument = "-s";
 
+        /// <summary>
+        /// Create a symbolic link.
+        /// </summary>
+        /// <value></value>
         public bool UseSymbolicLink { get; set; } = true;
+        /// <summary>
+        /// File to create a link to.
+        /// </summary>
         public string Source { get; set; }
+        /// <summary>
+        /// Name of the link.
+        /// </summary>
         public string Target { get; set; }
 
         public LinkModule()

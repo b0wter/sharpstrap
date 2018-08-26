@@ -2,11 +2,20 @@ using System;
 
 namespace Cootstrap.Modules
 {
+    /// <summary>
+    /// Module to print a given text.
+    /// </summary>
     public class PromptModule : ShellModule
     {
         private const string PromptCommand = "echo";
 
+        /// <summary>
+        /// Text to pront.
+        /// </summary>
         public string Text { get; set; }
+        /// <summary>
+        /// Color of the text.
+        /// </summary>
         public string Color { get; set; } = "White";
 
         protected override void PreExecution(System.Collections.Generic.IDictionary<string, string> variables, Helpers.ColoredTextWriter output)

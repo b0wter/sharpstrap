@@ -4,6 +4,7 @@ namespace Cootstrap.Modules
 {
     /// <summary>
     /// Fallback module for commands that are not yet implemented or too rare for wrrant an implementation.
+    /// Set the command and arguments using the <see cref="ShellModule.Command"/> and <see cref="ShellModule.Argument"/> property.
     /// </summary>
     public class GenericShellModule : ShellModule
     {

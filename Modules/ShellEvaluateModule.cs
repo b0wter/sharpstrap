@@ -5,6 +5,9 @@ using Cootstrap.Helpers;
 
 namespace Cootstrap.Modules
 {
+    /// <summary>
+    /// Evaluates a shell command and stores its content in a variable.
+    /// </summary>
     public class ShellEvaluateModule : ShellModule
     {
         protected override bool RedirectStandardOutput => true;

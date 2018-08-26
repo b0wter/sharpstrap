@@ -2,10 +2,17 @@ using System;
 
 namespace Cootstrap.Modules
 {
+    /// <summary>
+    /// Lists the contents of a folder.
+    /// </summary>
     public class FolderContentListModule : ShellModule
     {
         private const string ListCommand = "ls -la";
 
+        /// <summary>
+        /// Path of the folder whose contents shall be listed.
+        /// </summary>
+        /// <value></value>
         public string Path { get; set; }
 
         public FolderContentListModule()

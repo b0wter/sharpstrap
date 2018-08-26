@@ -17,10 +17,29 @@ namespace Cootstrap.Modules
 
         protected virtual bool RedirectStandardOutput => false;
 
+        /// <summary>
+        /// Command to run.
+        /// </summary>
         public string Command { get; set; }
+        /// <summary>
+        /// Arguments for the command.
+        /// </summary>
         public string Arguments { get; set; }
+        /// <summary>
+        /// Gets/sets wether this command required elevation.
+        /// </summary>
+        /// <value></value>
         public bool RequiresElevation { get; set; }
+        /// <summary>
+        /// Output of this command.
+        /// </summary>
+        /// <typeparam name="string"></typeparam>
+        /// <returns></returns>
         public IList<string> Output { get; set; } = new List<string>();
+        /// <summary>
+        /// Working directory for the process.
+        /// </summary>
+        /// <value></value>
         public string WorkingDirectory { get; set; }
 
         public ShellModule()

@@ -9,7 +9,14 @@ namespace Cootstrap.Modules
         protected const string WorkOnParentsArguments = "-p";
 
         protected abstract string FolderCommand { get; }
+        /// <summary>
+        /// List of foldernames to work on.
+        /// </summary>
+        /// <value></value>
         public IEnumerable<string> Foldernames { get; set; }
+        /// <summary>
+        /// Removes/creates parent folders if true.
+        /// </summary>
         public bool WorkOnParents { get; set; }
 
         public FolderModule()
@@ -49,11 +56,17 @@ namespace Cootstrap.Modules
         }
     }
 
+    /// <summary>
+    /// Creates folders.
+    /// </summary>
     public class FolderCreationModule : FolderModule
     {
         protected override string FolderCommand => "mkdir";
     }
 
+    /// <summary>
+    /// Removes (empty) folders.
+    /// </summary>
     public class FolderRemovalModule : FolderModule
     {
         protected override string FolderCommand => "rmdir";

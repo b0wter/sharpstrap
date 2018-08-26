@@ -10,8 +10,17 @@ namespace Cootstrap.Modules
         private const string ForceRemovalArgument = "-f";
         private const string RecursiveRemovalArgument = "-r";
 
+        /// <summary>
+        /// If the filename points to a folder it will be deleted recursively.
+        /// </summary>
         public bool RemoveRecursive { get; set; } = false;
+        /// <summary>
+        /// Forces the remove of a write-protected file.
+        /// </summary>
         public bool ForceRemoval { get; set; } = false;
+        /// <summary>
+        /// List of filenames to delete.
+        /// </summary>
         public IEnumerable<string> Filenames { get; set; }
 
         public DeleteModule(params string[] filenames) 

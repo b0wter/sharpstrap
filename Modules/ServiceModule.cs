@@ -30,12 +30,18 @@ namespace Cootstrap.Modules
         }
     }
 
+    /// <summary>
+    /// Starts a service.
+    /// </summary>
     public class ServiceStartModule : ServiceModule
     {
         protected override string ServiceSubCommand => "start";
 
     }
 
+    /// <summary>
+    /// Stops a service.
+    /// </summary>
     public class ServiceStopModule : ServiceModule
     {
         protected override string ServiceSubCommand => "stop";

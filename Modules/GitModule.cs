@@ -14,6 +14,9 @@ namespace Cootstrap.Modules
         protected abstract string CreateArgument();
     }
 
+    /// <summary>
+    /// Module to clone git repositories.
+    /// </summary>
     public class GitCloneModule : GitModule
     {
         private const string SubCommand = "clone";

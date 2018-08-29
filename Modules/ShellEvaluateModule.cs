@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Cootstrap.Helpers;
+using SharpStrap.Helpers;
 
-namespace Cootstrap.Modules
+namespace SharpStrap.Modules
 {
     /// <summary>
     /// Evaluates a shell command and stores its content in a variable.

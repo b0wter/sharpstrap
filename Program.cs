@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Cootstrap.Helpers;
-using Cootstrap.Modules;
+using SharpStrap.Helpers;
+using SharpStrap.Modules;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
-namespace Cootstrap
+namespace SharpStrap
 {
     class Program
     {

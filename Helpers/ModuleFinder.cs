@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Cootstrap.Helpers
+namespace SharpStrap.Helpers
 {
     internal class ModuleFinder
     {

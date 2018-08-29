@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Cootstrap.Modules
+namespace SharpStrap.Modules
 {
     public enum ModuleResultStates
     {

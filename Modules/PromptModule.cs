@@ -1,6 +1,6 @@
 using System;
 
-namespace Cootstrap.Modules
+namespace SharpStrap.Modules
 {
     /// <summary>
     /// Module to print a given text.

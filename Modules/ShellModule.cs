@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Cootstrap.Helpers;
+using SharpStrap.Helpers;
 
-namespace Cootstrap.Modules
+namespace SharpStrap.Modules
 {
      /// <summary>
     /// Module that runs a shell command.

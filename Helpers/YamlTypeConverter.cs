@@ -1,9 +1,9 @@
 using System;
-using Cootstrap.Modules;
+using SharpStrap.Modules;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 
-namespace Cootstrap.Helpers
+namespace SharpStrap.Helpers
 {
     /* 
     internal sealed class YamlModuleConverter : IYamlTypeConverter

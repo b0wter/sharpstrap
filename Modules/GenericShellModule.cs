@@ -1,6 +1,6 @@
 using System;
 
-namespace Cootstrap.Modules
+namespace SharpStrap.Modules
 {
     /// <summary>
     /// Fallback module for commands that are not yet implemented or too rare for wrrant an implementation.

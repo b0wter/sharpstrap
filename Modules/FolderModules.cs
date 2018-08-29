@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Cootstrap.Modules
+namespace SharpStrap.Modules
 {
     public abstract class FolderModule : ShellModule
     {

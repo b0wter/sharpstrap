@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Cootstrap.Helpers;
+using SharpStrap.Helpers;
 
-namespace Cootstrap.Modules
+namespace SharpStrap.Modules
 {
     public abstract class PackageBaseModule : ShellModule
     {

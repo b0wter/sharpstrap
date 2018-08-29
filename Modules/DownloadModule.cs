@@ -17,8 +17,11 @@ namespace SharpStrap.Modules
         /// <summary>
         /// Filename for the download. If not set the remote filename will be used instead.
         /// </summary>
-        /// <value></value>
         public string Target { get; set; }
+        /// <summary>
+        /// Gets/sets a custom user agent.
+        /// </summary>
+        public string UserAgent { get; set; }
 
         public DownloadModule()
         {
@@ -39,10 +42,14 @@ namespace SharpStrap.Modules
 
         private string CreateArgument()
         {
+            string args = string.Empty;;
+            if(string.IsNullOrWhiteSpace(this.UserAgent))
+                args = $"--user-agent=\"{this.UserAgent}\"";
+
             if(string.IsNullOrWhiteSpace(this.Target))
-                return $"{Url}";
+                return $"{args} {Url}";
             else
-                return $"{TargetFileNameArgument} {Target} {Url}";
+                return $"{args} {TargetFileNameArgument} {Target} {Url}";
         }
     }
 }

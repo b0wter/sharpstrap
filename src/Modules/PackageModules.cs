@@ -151,7 +151,7 @@ namespace SharpStrap.Modules
 
         private string CreateArgument()
         {
-            return $"{this.Arguments} {this.Url}";
+            return $"{PackageManagerArgument} {this.Arguments} {this.Url}";
         }
     }
 

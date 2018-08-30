@@ -49,10 +49,15 @@ namespace SharpStrap.Modules
             if(this.SkipVariableReplacement)
                 return s;
 
+            // ~ is a special variable that is a placeholder for $homedir but doesn't use a dollar sign.
+            // That's why it needs special treatment.
+            s = s.Replace("~", "$homedir");
+
             foreach(var pair in variables)
             {
                 s = s.Replace($"${pair.Key}", pair.Value);
             }
+
             return s;
         }
     }

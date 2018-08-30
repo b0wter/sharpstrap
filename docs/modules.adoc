@@ -1,0 +1,9 @@
+[source,cs]
+----
+include::../src/Modules/DownloadModule.cs[tags=properties]
+----
+
+[source,c]
+----
+include::test.cpp[tags=test]
+----

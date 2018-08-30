@@ -15,6 +15,12 @@ namespace SharpStrap
     {
         static async Task Main(string[] args)
         {
+            if(args.Length == 1 && args[0] == "modules")
+            {
+                PrintAllKnownModules();
+                return;
+            }
+
             if((args.Length != 1 && args.Length != 2) || File.Exists(args.Last()) == false)
             {
                 Console.WriteLine("This tool requires at least parameter (config file). You may add the '-y' option before the filename to autorun the bootstrap.");
@@ -39,7 +45,15 @@ namespace SharpStrap
             }
         }
 
-        private static Deserializer CreateDefaultDeserializer()
+        private static void PrintAllKnownModules()
+        {
+            Console.WriteLine("List of all available modules:");
+            var moduleFinder = CreateDefaultModuleFinder();
+            foreach(var module in moduleFinder.GetAllModulesForModulesNamespace())
+                Console.WriteLine($"{module.Type.Name}");
+        }
+
+        private static ModuleFinder CreateDefaultModuleFinder()
         {
             var moduleFinder = new ModuleFinder
             {
@@ -48,7 +62,12 @@ namespace SharpStrap
                 TrimStart = "",
                 TrimEnd = "Module"
             };
+            return moduleFinder;
+        }
 
+        private static Deserializer CreateDefaultDeserializer()
+        {
+            var moduleFinder = CreateDefaultModuleFinder();
             var mappings = moduleFinder.GetAllModulesForModulesNamespace();
 
             var builder = new DeserializerBuilder();

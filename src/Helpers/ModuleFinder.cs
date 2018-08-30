@@ -15,7 +15,7 @@ namespace SharpStrap.Helpers
 
         public IEnumerable<(string Name, Type Type)> GetAllModulesForModulesNamespace()
         {
-            var types = GetAllTypes("Cootstrap.Modules");
+            var types = GetAllTypes("SharpStrap.Modules");
 
             var tuples = new List<(string Name, Type Type)>(types.Count());
             foreach(var t in types)

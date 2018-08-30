@@ -78,7 +78,7 @@ namespace SharpStrap
                 if(ex.InnerException != null)
                     Console.WriteLine(ex.InnerException.Message);
                 Console.WriteLine("Config file:");
-                Console.WriteLine("[ .. ]");
+                Console.WriteLine(" ...  |");
 
 
                 const int marginLines = 3;
@@ -94,17 +94,17 @@ namespace SharpStrap
                     {
                         Console.Out.Flush();
                         Console.ForegroundColor = ConsoleColor.Cyan;
-                        Console.WriteLine($"[{paddedLineNumber}] > {relevantConfigFileContent[i]}");
+                        Console.WriteLine($"{paddedLineNumber} >|{relevantConfigFileContent[i]}");
                     }
                     else
                     {
                         Console.Out.Flush();
                         Console.ResetColor();
-                        Console.WriteLine($"[{paddedLineNumber}]   {relevantConfigFileContent[i]}");
+                        Console.WriteLine($"{paddedLineNumber}  |{relevantConfigFileContent[i]}");
                     }
                 }
 
-                Console.WriteLine("[ .. ]");
+                Console.WriteLine(" ...  |");
                 return false;
             }
 

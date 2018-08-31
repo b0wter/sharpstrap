@@ -25,7 +25,7 @@ namespace DocsGenerator
             if(System.IO.File.Exists(filename) == false)
                 throw new System.IO.FileNotFoundException($"The file '{filename}' could not be found.");
 
-            var fileContent = AppendDummyMainToCodeFromFile(filename); //System.IO.File.ReadAllText(filename);
+            var fileContent = AppendDummyMainToCodeFromFile(filename);
             var tree = CSharpSyntaxTree.ParseText(fileContent, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1));
             var compilationRoot = tree.GetCompilationUnitRoot();
 
@@ -51,7 +51,6 @@ namespace DocsGenerator
                                     MetadataReference.CreateFromFile(coreDir.FullName + System.IO.Path.DirectorySeparatorChar + "System.dll"),
                                     MetadataReference.CreateFromFile(coreDir.FullName + System.IO.Path.DirectorySeparatorChar + "System.Runtime.dll")
                                 );
-
 
             var compilationResult = code.compilation.GetDiagnostics();
 
@@ -98,12 +97,8 @@ namespace DocsGenerator
 
         internal IEnumerable<ClassPropertyComment> GetPropertiesWithComments()
         {
-            return GetPropertiesWithComments(this.classSyntaxes);
-        }
-
-        internal void Foo()
-        {
             var model = this.compilation.GetSemanticModel(this.tree);
+            var comments = new List<ClassPropertyComment>();
             
             //UsingDirectiveSyntax usingSystem = root.Usings[0];
             //NameSyntax name = usingSystem.Name;
@@ -124,11 +119,15 @@ namespace DocsGenerator
                 {
                     var propertySymbol = model.GetDeclaredSymbol(p);
                     var comment = propertySymbol.GetDocumentationCommentXml();
-                    Console.WriteLine($"{propertySymbol.Name} - {comment}");
+                    comments.Add(new ClassPropertyComment{
+                        ClassName = symbol.Name,
+                        PropertyName = propertySymbol.Name,
+                        Comment = comment
+                    });
                 }
-
-                Console.WriteLine();
             }
+
+            return comments;
             /* 
             var properties = this.root.DescendantNodes().OfType<PropertyDeclarationSyntax>();
 

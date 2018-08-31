@@ -6,7 +6,7 @@ namespace DocsGenerator
     {
         static void Main(string[] args)
         {
-            var code = ClassCodeInfo.FromSourceCodeFile("../src/Modules/DownloadModule.cs");
+            var code = ClassCodeInfo.FromSourceCodeFile("../src/Modules/PackageModules.cs");
             code.Foo();
         }
     }

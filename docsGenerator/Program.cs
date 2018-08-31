@@ -78,26 +78,5 @@ namespace DocsGenerator
                     Console.WriteLine(info.Comment);
             }
         }
-
-        /* 
-        var reflection = new ReflectionHelper();
-        var classes = reflection.GetBaseClasses<SharpStrap.Modules.DownloadModule>("BaseModule");
-        
-        return null;
-        */
-        /* 
-        Console.WriteLine($"Parents are:");
-        foreach (var c in classes)
-        {
-            Console.WriteLine(c.Name);
-        }
-
-        var properties = classes.SelectMany(c => reflection.GetPropertiesForClass(c)).Distinct();
-        foreach(var p in properties)
-        {
-            Console.WriteLine(p);
-        }
-        */
-
     }
 }

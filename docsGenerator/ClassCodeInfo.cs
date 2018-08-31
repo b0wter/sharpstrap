@@ -40,6 +40,8 @@ namespace DocsGenerator
             var coreDir = System.IO.Directory.GetParent(dd);
             var code = new ClassCodeInfo();
             code.classSyntaxes = classes;
+
+            // TODO: check if any dll is necessary since the usings are now set in the compilation options
             code.compilation = CSharpCompilation
                                 .Create("DocsGeneratorDynamic")
                                 .AddSyntaxTrees(tree)
@@ -77,6 +79,7 @@ namespace DocsGenerator
 
         private static string AppendDummyMainToCodeFromFile(string filename)
         {
+            // TODO: check if necessary as compilation is set to produce a dll
             var dummyMain = @"class DummyClass1234567890 { public static int Main() { return 0; } }";
 
             var content = System.IO.File.ReadAllLines(filename);
@@ -100,14 +103,6 @@ namespace DocsGenerator
             var model = this.compilation.GetSemanticModel(this.tree);
             var comments = new List<ClassPropertyComment>();
             
-            //UsingDirectiveSyntax usingSystem = root.Usings[0];
-            //NameSyntax name = usingSystem.Name;
-            //SymbolInfo nameInfo = model.GetSymbolInfo(name);
-
-            //var systemSymbol = (INamespaceSymbol)nameInfo.Symbol;
-            //foreach(INamespaceSymbol ns in systemSymbol.GetNamespaceMembers())
-            //    Console.WriteLine(ns);
-
             var classes = this.root.DescendantNodes().OfType<ClassDeclarationSyntax>();
             foreach(var c in classes)
             {
@@ -128,46 +123,6 @@ namespace DocsGenerator
             }
 
             return comments;
-            /* 
-            var properties = this.root.DescendantNodes().OfType<PropertyDeclarationSyntax>();
-
-            foreach(var prop in properties)
-            {
-                var nonCastSymbol = model.GetSymbolInfo(prop);
-                var symbolInfo = (IPropertySymbol)nonCastSymbol.Symbol;
-                var declaredSymbol = model.GetDeclaredSymbol(prop);
-
-                IPropertySymbol symbol;
-
-                if(model.GetDeclaredSymbol(prop) != null)
-                    symbol = model.GetDeclaredSymbol(prop);
-                else
-                    symbol = (IPropertySymbol)model.GetSymbolInfo(prop).Symbol;
-
-                var name = symbol.Name;
-                Console.WriteLine(name);
-            }
-            */
-        }
-
-        private IEnumerable<ClassPropertyComment> GetPropertiesWithComments(IEnumerable<ClassDeclarationSyntax> classes)
-        {
-            var classPropertyComments = new List<ClassPropertyComment>();
-
-            foreach(var item in classes)
-            {
-                var properties = item.Members.OfType<PropertyDeclarationSyntax>();
-
-                foreach(var m in item.Members)
-                    Console.WriteLine(m.GetType().Name);
-
-                var cpc = new ClassPropertyComment
-                {
-                };
-                classPropertyComments.Add(cpc);
-            }
-
-            return null;
         }
     }
 }

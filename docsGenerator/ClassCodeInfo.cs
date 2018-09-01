@@ -122,7 +122,7 @@ namespace DocsGenerator
                     comments.Add(new ClassPropertyComment{
                         ClassName = symbol.Name,
                         PropertyName = propertySymbol.Name,
-                        Comment = comment
+                        RawComment = comment
                     });
                 }
             }

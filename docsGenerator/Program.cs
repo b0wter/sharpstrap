@@ -77,11 +77,16 @@ namespace DocsGenerator
             foreach(var p in properties)
             {
                 Console.WriteLine(p);
-                var info = classCodeInfos.Find(x => x.ClassName == t.Name && x.PropertyName == p);
-                if(string.IsNullOrWhiteSpace(info.Comment))
+                var info = classCodeInfos.Find(x => x.PropertyName == p);
+                if(info == null)
+                    Console.WriteLine($"Could not find info for '{t.Name}.{p}' in the class code infos.");
+                else if(string.IsNullOrWhiteSpace(info.RawComment))
                     Console.WriteLine("<no documentation>");
                 else
-                    Console.WriteLine(info.Comment);
+                {
+                    foreach(var element in info.DocumentationElements)
+                        Console.WriteLine($"{element.Name}: {element.Value}");
+                }
             }
         }
     }

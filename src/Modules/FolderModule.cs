@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace SharpStrap.Modules
 {
+    /// <summary>
+    /// Base module for folder operations.
+    /// </summary>
     public abstract class FolderModule : ShellModule
     {
         protected const string WorkOnParentsArguments = "-p";

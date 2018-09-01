@@ -8,6 +8,9 @@ using System.Runtime.InteropServices;
 
 namespace SharpStrap.Modules
 {
+    /// <summary>
+    /// Holds all information for a complete bootstrap process.
+    /// </summary>
     public class Bootstrap
     {
         /// <summary>

@@ -2,6 +2,9 @@ using System;
 
 namespace SharpStrap.Modules
 {
+    /// <summary>
+    /// Base module for git operations.
+    /// </summary>
     public abstract class GitModule : ShellModule
     {
         private const string GitCommand = "git";
@@ -15,7 +18,7 @@ namespace SharpStrap.Modules
     }
 
     /// <summary>
-    /// Module to clone git repositories.
+    /// Clones a git repository.
     /// </summary>
     public class GitCloneModule : GitModule
     {

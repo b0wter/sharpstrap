@@ -4,6 +4,9 @@ using SharpStrap.Helpers;
 
 namespace SharpStrap.Modules
 {
+    /// <summary>
+    /// Base module for control system services.
+    /// </summary>
     public abstract class ServiceModule : ShellModule
     {
         protected const string ServiceCommand = "systemctl";

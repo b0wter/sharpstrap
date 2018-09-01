@@ -6,6 +6,9 @@ using SharpStrap.Helpers;
 
 namespace SharpStrap.Modules
 {
+    /// <summary>
+    /// Base module for file operations.
+    /// </summary>
     public abstract class FileModule : ShellModule
     {
         // TODO: Move the redundant properties into this base class.
@@ -113,6 +116,9 @@ namespace SharpStrap.Modules
         }
     }
 
+    /// <summary>
+    /// Moves files of folders.
+    /// </summary>
     public class FileMoveModule : FileModule
     {
         private const string ForceArgument = "-f";

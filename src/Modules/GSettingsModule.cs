@@ -4,6 +4,9 @@ using SharpStrap.Helpers;
 
 namespace SharpStrap.Modules
 {
+    /// <summary>
+    /// Base module to interact with the gnome config manager.
+    /// </summary>
     public abstract class GSettingsModule : ShellModule
     {
         protected const string GSettingsCommand = "gsettings";
@@ -19,6 +22,9 @@ namespace SharpStrap.Modules
         public abstract string Action { get; }
     }
 
+    /// <summary>
+    /// Writes a dconf setting.
+    /// </summary>
     public class GSettingsSetModule : GSettingsModule
     {
         /// <summary>

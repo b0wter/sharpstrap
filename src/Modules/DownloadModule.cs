@@ -3,7 +3,7 @@ using System;
 namespace SharpStrap.Modules
 {
     /// <summary>
-    /// Downloads remote files and saves them locally.
+    /// Downloads remote files and saves it locally.
     /// </summary>
     public class DownloadModule : ShellModule
     {

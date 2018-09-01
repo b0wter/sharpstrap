@@ -26,7 +26,7 @@ namespace SharpStrap.Modules
         /// </summary>
         public string Arguments { get; set; }
         /// <summary>
-        /// Gets/sets wether this command required elevation.
+        /// Gets/sets wether this command requires elevation.
         /// </summary>
         /// <value></value>
         public bool RequiresElevation { get; set; }

@@ -27,7 +27,7 @@ namespace SharpStrap.Modules
         /// <value></value>
         public string Url { get; set; }
         /// <summary>
-        /// Folder to clone into. Will be cloned to working directory in case it's empty.
+        /// Folder to clone into. Will be cloned to working directory using the repository name in case it's empty.
         /// </summary>
         /// <value></value>
         public string Target { get; set; }

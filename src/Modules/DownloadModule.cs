@@ -19,7 +19,7 @@ namespace SharpStrap.Modules
         /// </summary>
         public string Target { get; set; }
         /// <summary>
-        /// Gets/sets a custom user agent.
+        /// Custom user agent.
         /// </summary>
         public string UserAgent { get; set; }
 

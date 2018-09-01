@@ -10,7 +10,7 @@ namespace SharpStrap.Modules
         private const string ListCommand = "ls -la";
 
         /// <summary>
-        /// Path of the folder whose contents shall be listed.
+        /// Path of the folder whose contents will be listed.
         /// </summary>
         /// <value></value>
         public string Path { get; set; }

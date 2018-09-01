@@ -10,6 +10,9 @@ namespace SharpStrap.Modules
 
         protected abstract string ServiceSubCommand { get; }
 
+        /// <summary>
+        /// Names of the services to act on.
+        /// </summary>
         public IEnumerable<string> ServiceNames { get; set; } = new List<string>();
 
         public ServiceModule()

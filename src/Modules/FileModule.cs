@@ -13,7 +13,7 @@ namespace SharpStrap.Modules
         protected abstract string FileOperation { get; }
 
         /// <summary>
-        /// List of files to work on.
+        /// List of files to work on / to use as source.
         /// </summary>
         public IEnumerable<string> Filenames { get; set; }
 
@@ -42,7 +42,6 @@ namespace SharpStrap.Modules
         /// <summary>
         /// Forces the removal of write-protected files.
         /// </summary>
-        /// <value></value>
         public bool Force{ get; set; } 
         /// <summary>
         /// If the filename points to a folder it will be deleted recursively.
@@ -76,7 +75,7 @@ namespace SharpStrap.Modules
         protected override string FileOperation => "cp";
 
         /// <summary>
-        /// Forces the file to copied even if the destination cannot be opened.
+        /// Forces the file to be copied even if the destination cannot be opened.
         /// </summary>
         public bool Force{ get; set; } 
         /// <summary>

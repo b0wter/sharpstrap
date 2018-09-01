@@ -130,6 +130,9 @@ namespace SharpStrap.Modules
     {
         private const string PackageManagerArgument = "config-manager --add-repo";
 
+        /// <summary>
+        /// Url to import as a repository.
+        /// </summary>
         public string Url { get; set; }
 
         public PackageImportModule()
@@ -163,6 +166,9 @@ namespace SharpStrap.Modules
         private const string PackageManagerCommand = "rpm";
         private const string PackageManagerArgument = "--import";
 
+        /// <summary>
+        /// Url of the key to import.
+        /// </summary>
         public string Url { get; set; }
 
         public KeyImportModule()
@@ -193,6 +199,9 @@ namespace SharpStrap.Modules
         private const string PackageManagerCommand = "rpm";
         private const string PackageManagerArgument = "-Uvh";
 
+        /// <summary>
+        /// Url of the repository to import.
+        /// </summary>
         public string Url { get; set; }
 
         public RepositoryImportModule()

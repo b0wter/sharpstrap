@@ -10,12 +10,10 @@ namespace SharpStrap.Modules
         /// <summary>
         /// Unique Id of this module.
         /// </summary>
-        /// <value></value>
         public string Id { get; set; }
         /// <summary>
         /// Description of this module.
         /// </summary>
-        /// <value></value>
         public string Description { get; set; }
         /// <summary>
         /// Performs the action this module is intended to do. Requires previous setup.
@@ -30,7 +28,6 @@ namespace SharpStrap.Modules
         /// <summary>
         /// Skips the replacement of variables for this module.
         /// </summary>
-        /// <value></value>
         protected virtual bool SkipVariableReplacement { get; } = false;
 
         /// <summary>

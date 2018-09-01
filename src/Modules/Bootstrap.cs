@@ -25,19 +25,14 @@ namespace SharpStrap.Modules
         /// <summary>
         /// List of packages that executred successfully.
         /// </summary>
-        /// <typeparam name="Package"></typeparam>
-        /// <returns></returns>
         private List<Package> solvedPackages = new List<Package>();
         /// <summary>
         /// List of packages that failed execution.
         /// </summary>
-        /// <typeparam name="Package"></typeparam>
-        /// <returns></returns>
         private List<Package> unsolvedPackages = new List<Package>();
         /// <summary>
         /// List of packages that have previously run and will not be run this time.
         /// </summary>
-        /// <typeparam name="Package"></typeparam>
         private List<Package> previouslyRunPackages = new List<Package>();
         /// <summary>
         /// Input device, usually the console.
@@ -55,32 +50,23 @@ namespace SharpStrap.Modules
         /// <summary>
         /// List of packages that will be run.
         /// </summary>
-        /// <typeparam name="Package"></typeparam>
-        /// <returns></returns>
         public List<Package> Packages { get; set; } = new List<Package>();
         /// <summary>
         /// Filename for the logfile containing the successful packages. No file will be written if it's empty.
         /// </summary>
-        /// <value></value>
         public string SuccessLogFilename { get; set; } = "bootstrap.success";
         /// <summary>
         /// Filename for the logfile containing the failed packages. No file will be written if it's empty.
         /// </summary>
-        /// <value></value>
         public string ErrorLogFilename { get; set; } = "bootstrap.error";
         /// <summary>
         /// Global variables are injected into every package that is executed.
         /// </summary>
-        /// <typeparam name="string"></typeparam>
-        /// <typeparam name="string"></typeparam>
-        /// <returns></returns>
         public IDictionary<string, string> GlobalVariables { get; set; } = new Dictionary<string, string>();
 
         /// <summary>
         /// List of packages that will be run at the end of the bootstrap process. Regular packages may not depend on these.
         /// </summary>
-        /// <typeparam name="Package"></typeparam>
-        /// <returns></returns>
         public List<Package> CleanupPackages { get; set; } = new List<Package>();
 
         /// <summary>

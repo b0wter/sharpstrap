@@ -16,17 +16,14 @@ namespace SharpStrap.Modules
         /// <summary>
         /// Name of the variable the contents will be stored in.
         /// </summary>
-        /// <value></value>
         public string VariableName { get; set; }
         /// <summary>
         /// Gets/sets wether only the last line of the output is used as return value.
         /// </summary>
-        /// <value></value>
         public bool LastLineOnly { get; set; } = true;
         /// <summary>
         /// Gets/sets wether empty lines at the end of the output will be trimmed.
         /// </summary>
-        /// <value></value>
         public bool TrimEmpty { get; set; } = true;
 
         protected override void PreExecution(IDictionary<string, string> variables, ColoredTextWriter output)

@@ -13,7 +13,6 @@ namespace SharpStrap.Modules
         /// <summary>
         /// Create a symbolic link.
         /// </summary>
-        /// <value></value>
         public bool UseSymbolicLink { get; set; } = true;
         /// <summary>
         /// File to create a link to.

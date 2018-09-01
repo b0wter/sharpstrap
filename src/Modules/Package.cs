@@ -10,26 +10,22 @@ namespace SharpStrap.Modules
         /// <summary>
         /// Name of this package. Needs to be unique.
         /// </summary>
-        /// <value></value>
         public string Name { get; set; }
 
         /// <summary>
         /// Description of this package (optional).
         /// </summary>
-        /// <value></value>
         public string Description { get; set; }
 
         /// <summary>
         /// Gets/sets if this package is mission ciritical.
         /// Bootstrapping will stop if this fails.
         /// </summary>
-        /// <value></value>
         public bool IsCritical { get; set; }
 
         /// <summary>
         /// Gets/sets wether this package will be run even it has been previously finished.
         /// </summary>
-        /// <value></value>
         public bool IgnoreAlreadySolved { get; set; }
 
         /// <summary>

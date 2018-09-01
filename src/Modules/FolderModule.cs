@@ -12,7 +12,6 @@ namespace SharpStrap.Modules
         /// <summary>
         /// List of foldernames to work on.
         /// </summary>
-        /// <value></value>
         public IEnumerable<string> Foldernames { get; set; }
         /// <summary>
         /// Removes/creates parent folders if true.

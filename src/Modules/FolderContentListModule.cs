@@ -12,7 +12,6 @@ namespace SharpStrap.Modules
         /// <summary>
         /// Path of the folder whose contents will be listed.
         /// </summary>
-        /// <value></value>
         public string Path { get; set; }
 
         public FolderContentListModule()

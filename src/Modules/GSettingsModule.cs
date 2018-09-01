@@ -24,7 +24,6 @@ namespace SharpStrap.Modules
         /// <summary>
         /// Value to set. Will be written to the settings using double quotes.
         /// </summary>
-        /// <value></value>
         public string Value { get; set; }
         public override string Action => "set";
 

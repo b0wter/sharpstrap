@@ -14,12 +14,10 @@ namespace SharpStrap.Modules
         /// <summary>
         /// List of package names to work with.
         /// </summary>
-        /// <value></value>
         public IList<string> PackageNames { get; set; } = new List<string>();
         /// <summary>
         /// File to load the PackageNames from.
         /// </summary>
-        /// <value></value>
         public string SourceFile { get; set; }
 
         protected void AddPackagesFromFile(IDictionary<string, string> variables)

@@ -44,6 +44,12 @@ namespace DocsGenerator
             foreach(var file in moduleFiles)
             {
                 var analysis = ClassCodeInfo.FromSourceCodeFile(file);
+                if(analysis.HasErrors)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"Compilation of '{file}' resulted in the following errors:");
+                    Console.WriteLine(string.Join(Environment.NewLine, analysis.ErrorMessages));
+                }
                 classCodeInfos.AddRange(analysis.GetPropertiesWithComments());
             }
 

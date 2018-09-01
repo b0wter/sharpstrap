@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
@@ -18,6 +19,9 @@ namespace DocsGenerator
         private SyntaxTree tree;
         private CompilationUnitSyntax root;
 
+        public IReadOnlyCollection<string> ErrorMessages { private set; get; }
+        public bool HasErrors => ErrorMessages == null ? false : ErrorMessages.Count > 0;
+
         private ClassCodeInfo() { }
 
         internal static ClassCodeInfo FromSourceCodeFile(string filename)
@@ -25,7 +29,8 @@ namespace DocsGenerator
             if(System.IO.File.Exists(filename) == false)
                 throw new System.IO.FileNotFoundException($"The file '{filename}' could not be found.");
 
-            var fileContent = AppendDummyMainToCodeFromFile(filename);
+            //var fileContent = AppendDummyMainToCodeFromFile(filename);
+            var fileContent = System.IO.File.ReadAllText(filename);
             var tree = CSharpSyntaxTree.ParseText(fileContent, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1));
             var compilationRoot = tree.GetCompilationUnitRoot();
 
@@ -41,9 +46,9 @@ namespace DocsGenerator
             var code = new ClassCodeInfo();
             code.classSyntaxes = classes;
 
-            // TODO: check if any dll is necessary since the usings are now set in the compilation options
             code.compilation = CSharpCompilation
                                 .Create("DocsGeneratorDynamic")
+                                .WithOptions(CreateDefaultCompilerOptions())
                                 .AddSyntaxTrees(tree)
                                 .AddReferences(
                                     MetadataReference.CreateFromFile(typeof(string).Assembly.Location),
@@ -51,11 +56,21 @@ namespace DocsGenerator
                                     MetadataReference.CreateFromFile(coreDir.FullName + System.IO.Path.DirectorySeparatorChar + "mscorlib.dll"),
                                     MetadataReference.CreateFromFile(coreDir.FullName + System.IO.Path.DirectorySeparatorChar + "System.Core.dll"),
                                     MetadataReference.CreateFromFile(coreDir.FullName + System.IO.Path.DirectorySeparatorChar + "System.dll"),
+                                    MetadataReference.CreateFromFile(coreDir.FullName + System.IO.Path.DirectorySeparatorChar + "System.Linq.dll"),
+                                    MetadataReference.CreateFromFile(coreDir.FullName + System.IO.Path.DirectorySeparatorChar + "System.Diagnostics.Process.dll"),
+                                    MetadataReference.CreateFromFile(coreDir.FullName + System.IO.Path.DirectorySeparatorChar + "System.IO.dll"),
+                                    MetadataReference.CreateFromFile(coreDir.FullName + System.IO.Path.DirectorySeparatorChar + "System.ComponentModel.Primitives.dll"),
+                                    MetadataReference.CreateFromFile(coreDir.FullName + System.IO.Path.DirectorySeparatorChar + "System.ComponentModel.dll"),
+                                    MetadataReference.CreateFromFile(coreDir.FullName + System.IO.Path.DirectorySeparatorChar + "System.Collections.dll"),
+                                    MetadataReference.CreateFromFile(coreDir.FullName + System.IO.Path.DirectorySeparatorChar + "System.Console.dll"),
+                                    MetadataReference.CreateFromFile(coreDir.FullName + System.IO.Path.DirectorySeparatorChar + "System.Runtime.Extensions.dll"),
                                     MetadataReference.CreateFromFile(coreDir.FullName + System.IO.Path.DirectorySeparatorChar + "System.Runtime.dll")
                                 );
 
             var compilationResult = code.compilation.GetDiagnostics();
-
+            var compilationErrors = compilationResult.Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.GetMessage());
+            
+            code.ErrorMessages = new ReadOnlyCollection<string>(compilationErrors.ToList());
             code.root = compilationRoot;
             code.tree = tree;
             return code;
@@ -63,17 +78,7 @@ namespace DocsGenerator
 
         private static CSharpCompilationOptions CreateDefaultCompilerOptions()
         {
-            string[] defaultNamespaces = new [] 
-            {
-                "System",
-                "System.Linq",
-                "System.IO",
-                "System.Collection.Generic"
-            };
-
-            var options = (new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-                            .WithUsings(defaultNamespaces);
-
+            var options = (new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             return options;
         }
 

@@ -9,6 +9,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DocsGenerator
 {
+    /// <summary>
+    /// Uses Roslyn to create in-memory compilations of code files.
+    /// </summary>
     internal class ClassCodeInfo
     {
         // A tutorial for the code analysis toolkit can be found here:
@@ -19,11 +22,23 @@ namespace DocsGenerator
         private SyntaxTree tree;
         private CompilationUnitSyntax root;
 
+        /// <summary>
+        /// List of error messages that are a result of the compilation process.
+        /// </summary>
         public IReadOnlyCollection<string> ErrorMessages { private set; get; }
+        /// <summary>
+        /// Returns wether there are compilation errors.
+        /// </summary>
         public bool HasErrors => ErrorMessages == null ? false : ErrorMessages.Count > 0;
 
         private ClassCodeInfo() { }
 
+        /// <summary>
+        /// Creates a class instance from a source code file.
+        /// Will build a <see cref="Compilation"/>, a <see cref="SyntaxTree"> and a <see cref="CompilationUnitSyntax"/>.
+        /// </summary>
+        /// <param name="filename">Source code file.</param>
+        /// <returns>Instance of ClassCodeInfo.</returns>
         internal static ClassCodeInfo FromSourceCodeFile(string filename)
         {
             if(System.IO.File.Exists(filename) == false)

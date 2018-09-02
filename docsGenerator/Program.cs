@@ -90,6 +90,8 @@ namespace DocsGenerator
                 else
                     propertyDocumentationTagsFound++;
             }
+
+            Console.WriteLine($"Class description:{Environment.NewLine}{classCodeInfos.Find(c => c.ClassName == t.Name).CleanedMergedDocumentationTags} ");
             Console.WriteLine($"Found {propertyDocumentationTagsFound} documentation tag{(propertyDocumentationTagsFound == 1 ? "" : "s")}.");
         }
     }

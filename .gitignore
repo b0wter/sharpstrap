@@ -239,3 +239,5 @@ PodfilterAngular/
 *.db
 *.yaml
 *.swp
+src/bootstrap.error
+src/bootstrap.success

@@ -12,7 +12,7 @@ namespace DocsGenerator
     /// <summary>
     /// Uses Roslyn to create in-memory compilations of code files.
     /// </summary>
-    internal class ClassCodeInfo
+    internal class SourceCodeInfo
     {
         // A tutorial for the code analysis toolkit can be found here:
         // https://docs.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/get-started/semantic-analysis
@@ -41,7 +41,7 @@ namespace DocsGenerator
         /// </summary>
         /// <param name="filename">Source code file.</param>
         /// <returns>Instance of ClassCodeInfo.</returns>
-        internal static ClassCodeInfo FromSourceCodeFile(string filename)
+        internal static SourceCodeInfo FromSourceCodeFile(string filename)
         {
             if(System.IO.File.Exists(filename) == false)
                 throw new System.IO.FileNotFoundException($"The file '{filename}' could not be found.");

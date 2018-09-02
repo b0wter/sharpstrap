@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DocsGenerator
 {
-    internal class SourceCodeInfo
+    internal class ClassCodeInfo
     {
         // A tutorial for the code analysis toolkit can be found here:
         // https://docs.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/get-started/semantic-analysis
@@ -21,12 +21,12 @@ namespace DocsGenerator
 
         public IReadOnlyCollection<string> ErrorMessages { private set; get; }
         public bool HasErrors => ErrorMessages == null ? false : ErrorMessages.Count > 0;
-        public IEnumerable<ClassComment> ClassComments { private set; get; }
-        public IEnumerable<ClassPropertyComment> ClassPropertyComments { private set; get; }
+        public IEnumerable<ClassComment> ClassComments { get; private set; }
+        public IEnumerable<ClassPropertyComment> ClassPropertyComments { get; private set; }
 
-        private SourceCodeInfo() { }
+        private ClassCodeInfo() { }
 
-        internal static SourceCodeInfo FromSourceCodeFile(string filename)
+        internal static ClassCodeInfo FromSourceCodeFile(string filename)
         {
             if(System.IO.File.Exists(filename) == false)
                 throw new System.IO.FileNotFoundException($"The file '{filename}' could not be found.");
@@ -45,7 +45,7 @@ namespace DocsGenerator
 
             var dd = typeof(Enumerable).GetTypeInfo().Assembly.Location;
             var coreDir = System.IO.Directory.GetParent(dd);
-            var code = new SourceCodeInfo();
+            var code = new ClassCodeInfo();
             code.classSyntaxes = classes;
 
             code.compilation = CSharpCompilation
@@ -75,6 +75,7 @@ namespace DocsGenerator
             code.ErrorMessages = new ReadOnlyCollection<string>(compilationErrors.ToList());
             code.root = compilationRoot;
             code.tree = tree;
+
             code.LoadClassAndPropertyComments();
 
             return code;
@@ -107,7 +108,7 @@ namespace DocsGenerator
             return string.Join(Environment.NewLine, newContent);
         }
 
-        private void LoadClassAndPropertyComments()
+        private IEnumerable<ClassPropertyComment> LoadClassAndPropertyComments()
         {
             var model = this.compilation.GetSemanticModel(this.tree);
             var propertyComments = new List<ClassPropertyComment>();
@@ -118,10 +119,11 @@ namespace DocsGenerator
             {
                 var symbol = model.GetDeclaredSymbol(c);
                 Console.WriteLine(symbol.Name);
-                classComments.Add(new ClassComment()
-                {
+
+                var classComment = symbol.GetDocumentationCommentXml();
+                classComments.Add(new ClassComment {
                     ClassName = symbol.Name,
-                    RawComment = symbol.GetDocumentationCommentXml()
+                    RawComment = classComment
                 });
 
                 var properties = c.DescendantNodes().OfType<PropertyDeclarationSyntax>();
@@ -137,8 +139,7 @@ namespace DocsGenerator
                 }
             }
 
-            this.ClassComments = classComments;
-            this.ClassPropertyComments = propertyComments;
+            return propertyComments;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using SharpStrap.Modules;
 
 namespace DocsGenerator
@@ -14,7 +15,8 @@ namespace DocsGenerator
         private const string ModuleClassNameEndsWith = "Module";
         private const string baseModuleClassName = "BaseModule";
         //private static readonly Dictionary<string, ClassCodeInfo> analysis = new Dictionary<string, ClassCodeInfo>();
-        private static readonly List<ClassPropertyComment> classCodeInfos = new List<ClassPropertyComment>();
+        private static readonly List<ClassPropertyComment> classPropertyCodeInfos = new List<ClassPropertyComment>();
+        private static readonly List<ClassComment> classCodeInfos = new List<ClassComment>();
         private static readonly List<string> PropertyNameBlacklist = new List<string>() { "Id", "Description", "AllowError", "Command", "Arguments", "Output", "WorkingDirectory", "RequiresElevation" };
 
         /// <summary>
@@ -43,14 +45,18 @@ namespace DocsGenerator
             Console.WriteLine("Preparing code analysis for all source code files.");
             foreach(var file in moduleFiles)
             {
-                var analysis = ClassCodeInfo.FromSourceCodeFile(file);
+                var analysis = SourceCodeInfo.FromSourceCodeFile(file);
                 if(analysis.HasErrors)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine($"Compilation of '{file}' resulted in the following errors:");
                     Console.WriteLine(string.Join(Environment.NewLine, analysis.ErrorMessages));
                 }
-                classCodeInfos.AddRange(analysis.GetPropertiesWithComments());
+                foreach(var c in analysis.ClassPropertyComments)
+                    classPropertyCodeInfos.Add(c);
+
+                foreach(var c in analysis.ClassComments)
+                    classCodeInfos.Add(c);
             }
 
             var types = GetModulesTypes();
@@ -60,11 +66,11 @@ namespace DocsGenerator
             
             foreach(var type in types.Where(t => t.IsAbstract == false))
             {
-                GetCommentsForClass(type);
+                GetCommentsForClassProperties(type);
             }
         }
 
-        static void GetCommentsForClass(Type t)
+        static void GetCommentsForClassProperties(Type t)
         {
             var reflection = new ReflectionHelper();
 
@@ -73,21 +79,18 @@ namespace DocsGenerator
             var baseClasses = reflection.GetBaseClasses(t, baseModuleClassName, true);
             var properties = baseClasses.SelectMany(c => reflection.GetPropertiesForClass(c)).Distinct().Except(PropertyNameBlacklist);
 
-            Console.WriteLine( "Properties for this class (and base classes):");
+            int propertyDocumentationTagsFound = 0;
             foreach(var p in properties)
             {
-                Console.WriteLine(p);
-                var info = classCodeInfos.Find(x => x.PropertyName == p);
+                var info = classPropertyCodeInfos.Find(x => x.PropertyName == p);
                 if(info == null)
                     Console.WriteLine($"Could not find info for '{t.Name}.{p}' in the class code infos.");
                 else if(string.IsNullOrWhiteSpace(info.RawComment))
                     Console.WriteLine("<no documentation>");
                 else
-                {
-                    foreach(var element in info.DocumentationElements)
-                        Console.WriteLine($"{element.Name}: {element.Value}");
-                }
+                    propertyDocumentationTagsFound++;
             }
+            Console.WriteLine($"Found {propertyDocumentationTagsFound} documentation tag{(propertyDocumentationTagsFound == 1 ? "" : "s")}.");
         }
     }
 }

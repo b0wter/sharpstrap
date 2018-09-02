@@ -44,5 +44,6 @@ namespace DocsGenerator
         public XDocument XmlComment { get; private set; }
         public IEnumerable<XElement> DocumentationElements { get; private set; }
         public IDictionary<string, string> CleanedDocumentationTags { get; private set; }
+        public string CleanedMergedDocumentationTags => CleanedDocumentationTags == null ? null : string.Join(System.Environment.NewLine, CleanedDocumentationTags);
     }
 }

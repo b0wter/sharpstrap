@@ -44,7 +44,11 @@ namespace SharpStrap
 
                 try{
                     var bootstrap = deserializer.Deserialize<Bootstrap>(reader);
-                    await bootstrap.Run(Console.In, new ConsoleWriter(), Console.BufferWidth, overrideUserDecision);
+                    await bootstrap.Run(
+                        new ConsoleIODefinition(), 
+                        new FrameworkTextFileInput(),
+                        new FrameworkTextFileOutput(),
+                        overrideUserDecision);
                 }
                 catch(IOException ex)
                 {

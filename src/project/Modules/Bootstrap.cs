@@ -72,6 +72,9 @@ namespace SharpStrap.Modules
         /// </summary>
         public List<Package> CleanupPackages { get; set; } = new List<Package>();
 
+        private ITextFileInput textFileInput;
+        private ITextFileOutput textFileOutput;
+
         /// <summary>
         /// Initializes and runs the bootstrap process.
         /// </summary>
@@ -80,11 +83,13 @@ namespace SharpStrap.Modules
         /// <param name="columnCount">Number of columns the output devices can render.</param>
         /// <param name="overrideUserDecision">Override the user interaction asking for confirmation.</param>
         /// <returns></returns>
-        public async Task Run(TextReader input, ColoredTextWriter output, int columnCount, bool overrideUserDecision = false)
+        public async Task<bool> Run(IIOtDefinition outputDefinition, ITextFileInput textFileInput, ITextFileOutput textFileOutput, bool overrideUserDecision = false)
         {
-            this.input = input;
-            this.output = output;
-            this.columnCount = columnCount;
+            this.input = outputDefinition.TextReader;
+            this.output = outputDefinition.TextWriter;
+            this.columnCount = outputDefinition.ColumnWidth;
+            this.textFileInput = textFileInput;
+            this.textFileOutput = textFileOutput;
 
             AddDefaultVariables();
             try {
@@ -92,7 +97,7 @@ namespace SharpStrap.Modules
                 DryRunDependencies();
             } catch (ArgumentException ex) {
                 output.WriteLine($"Execution stopped because: {ex.Message}");
-                return;
+                return false;
             }
 
             if(InitPackageOperation(overrideUserDecision))
@@ -111,6 +116,7 @@ namespace SharpStrap.Modules
             }
 
             PrintResults();
+            return true;
         }
 
         private void AddDefaultVariables()
@@ -174,7 +180,7 @@ namespace SharpStrap.Modules
         {
             if(string.IsNullOrWhiteSpace(SuccessLogFilename) == false && System.IO.File.Exists(SuccessLogFilename))
             {
-                var previouslyRunPackageNames = System.IO.File.ReadAllLines(SuccessLogFilename).Where(l => string.IsNullOrWhiteSpace(l) == false);
+                var previouslyRunPackageNames = textFileInput.ReadAllLines(SuccessLogFilename).Where(l => string.IsNullOrWhiteSpace(l) == false);
                 var previouslyRunPackages = previouslyRunPackageNames.Select(name => this.Packages.Find(p => p.Name == name && p.IgnoreAlreadySolved == false)).Where(x => x != null).ToList();
                 this.Packages.RemoveAll(p => previouslyRunPackages.Contains(p) && p.IgnoreAlreadySolved == false);
                 this.previouslyRunPackages.AddRange(previouslyRunPackages);
@@ -314,7 +320,7 @@ namespace SharpStrap.Modules
                 return;
 
             try {
-                System.IO.File.WriteAllLines(filename, packages.Select(p => p.Name));
+                textFileOutput.WriteAllLines(filename, packages.Select(p => p.Name));
             }
             catch(UnauthorizedAccessException)
             {

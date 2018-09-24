@@ -45,7 +45,8 @@ namespace DocsGenerator
         
         internal IEnumerable<string> GetPropertiesForClass(Type type)
         {
-            var properties = type.GetProperties().Where(p => p.GetSetMethod() != null);
+            var unfilteredProperties = type.GetProperties(BindingFlags.Public);
+            var properties = unfilteredProperties.Where(p => p.GetSetMethod() != null && p.CanWrite == true);
             var propertyNames = properties.Select(p => p.Name);
             return propertyNames;
         }

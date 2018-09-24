@@ -8,10 +8,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis" Version="2.9.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../src/sharpstrap.csproj" />
+    <ProjectReference Include="../src/project/sharpstrap.csproj" />
   </ItemGroup>
 
 </Project>

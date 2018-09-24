@@ -8,6 +8,7 @@ namespace DocsGenerator
     internal abstract class BaseComment
     {
         public string ClassName { get; set; }
+        public string Namespace { get; set; }
         private string rawComment;
         public string RawComment
         {
@@ -42,8 +43,8 @@ namespace DocsGenerator
             }
         }
         public XDocument XmlComment { get; private set; }
-        public IEnumerable<XElement> DocumentationElements { get; private set; }
-        public IDictionary<string, string> CleanedDocumentationTags { get; private set; }
+        public IEnumerable<XElement> DocumentationElements { get; private set; } = new List<XElement>();
+        public IDictionary<string, string> CleanedDocumentationTags { get; private set; } = new Dictionary<string, string>();
         public string CleanedMergedDocumentationTags => CleanedDocumentationTags == null ? null : string.Join(System.Environment.NewLine, CleanedDocumentationTags);
     }
 }

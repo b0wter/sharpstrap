@@ -136,7 +136,9 @@ namespace DocsGenerator
                 classComments.Add(new ClassComment()
                 {
                     ClassName = symbol.Name,
-                    RawComment = symbol.GetDocumentationCommentXml()
+                    RawComment = symbol.GetDocumentationCommentXml(),
+                    IsAbstract = symbol.IsAbstract,
+                    Namespace = symbol.ContainingNamespace.Name
                 });
 
                 var properties = c.DescendantNodes().OfType<PropertyDeclarationSyntax>();

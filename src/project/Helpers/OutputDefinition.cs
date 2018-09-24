@@ -3,14 +3,14 @@ using System.IO;
 
 namespace SharpStrap.Helpers
 {
-    public interface IIOtDefinition
+    public interface IIODefinition
     {
         ColoredTextWriter TextWriter { get; }
         int ColumnWidth { get; }
         TextReader TextReader { get; }
     }
 
-    public class ConsoleIODefinition : IIOtDefinition
+    public class ConsoleIODefinition : IIODefinition
     {
         public ColoredTextWriter TextWriter { get; private set; }
 

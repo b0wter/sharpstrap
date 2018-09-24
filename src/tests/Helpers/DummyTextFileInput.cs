@@ -5,21 +5,21 @@ namespace Tests.Helpers
 {
     public class DummyTextFileInput : ITextFileInput
     {
-        private string[] content;
+        public string[] Content { get; private set; }
 
         public DummyTextFileInput(string [] content)
         {
-            this.content = content;
+            this.Content = content;
         }
 
         public string[] ReadAllLines(string filename)
         {
-            return content;
+            return this.Content;
         }
 
         public string ReadAllText(string filename)
         {
-            return String.Join(Environment.NewLine, content);
+            return String.Join(Environment.NewLine, this.Content);
         }
     }
 }

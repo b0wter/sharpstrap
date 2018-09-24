@@ -2,7 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using FakeItEasy;
+using FluentAssertions;
+using SharpStrap.Helpers;
 using SharpStrap.Modules;
+using Tests.Helpers;
 using Tests.Modules;
 using Xunit;
 
@@ -10,7 +14,10 @@ namespace Tests
 {
     public class BootstrapTests
     {
-        private Bootstrap CreateSuccessModuleBootstrap(int packageCount = 2, int modulePerPackageCount = 2)
+        private const string ErrorLogName = "error.log";
+        private const string SuccessLogName = "succes.log";
+
+        private Bootstrap CreateSuccessModuleBootstrap(int packageCount, int modulePerPackageCount)
         {
             var cascadedModules = new List<List<BaseModule>>(packageCount);
             for(int j = 0; j < packageCount; ++j)
@@ -23,7 +30,7 @@ namespace Tests
             return CreateBootstrapWithCascadedList(cascadedModules);
         }
 
-        private Bootstrap CreateErrorModuleBootstrap(int packageCount = 2, int modulePerPackageCount = 2)
+        private Bootstrap CreateErrorModuleBootstrap(int packageCount, int modulePerPackageCount)
         {
             var cascadedModules = new List<List<BaseModule>>(packageCount);
             for(int j = 0; j < packageCount; ++j)
@@ -53,8 +60,8 @@ namespace Tests
             var bootstrap = new Bootstrap
             {
                 Packages = packages,
-                ErrorLogFilename = "error.log",
-                SuccessLogFilename = "success.log"
+                ErrorLogFilename = ErrorLogName,
+                SuccessLogFilename = SuccessLogName
             };
 
             return bootstrap;
@@ -63,33 +70,53 @@ namespace Tests
         [Fact]
         public async Task Run_WithSuccessConfiguration_ReturnsSuccess()
         {
-            var bootstrap = CreateSuccessModuleBootstrap();
+            int packageCount = 2; int modulePerPackageCount = 2;
+            var bootstrap = CreateSuccessModuleBootstrap(packageCount, modulePerPackageCount);
+            var input = A.Fake<IIODefinition>();
+            A.CallTo(() => input.TextReader.Read()).Returns('y');
+            var textInput = A.Fake<ITextFileInput>();
+            var textOutput = A.Fake<ITextFileOutput>();
 
-            var result = await bootstrap.Run(null, null, null, null, false);
+            var result = await bootstrap.Run(input, textInput, textOutput, false);
 
-            Assert.True(result);
+            result.Should().BeTrue();
         }
 
         [Fact]
         public async Task Run_WithErrorConfiguration_ReturnsError()
         {
-            var bootstrap = CreateErrorModuleBootstrap();
+            int packageCount = 2; int modulePerPackageCount = 2;
+            var bootstrap = CreateErrorModuleBootstrap(packageCount, modulePerPackageCount);
+            var input = A.Fake<IIODefinition>();
+            A.CallTo(() => input.TextReader.Read()).Returns('y');
+            var textInput = A.Fake<ITextFileInput>();
+            var textOutput = A.Fake<ITextFileOutput>();
 
-            var result = await bootstrap.Run(null, null, null, null, false);
+            var result = await bootstrap.Run(input, textInput, textOutput, false);
 
-            Assert.False(result);
+            result.Should().BeFalse();
         }
 
         [Fact]
         public async Task Run_WithSucessConfiguration_WritesSuccessLog()
         {
-            var bootstrap = CreateSuccessModuleBootstrap();
+            int packageCount = 2;
+            int moduleCount = 3;
+            var bootstrap = CreateSuccessModuleBootstrap(packageCount, moduleCount);
+            bootstrap.ErrorLogFilename = "error.log";
+            var input = A.Fake<IIODefinition>();
+            A.CallTo(() => input.TextReader.Read()).Returns('y');
+            var textInput = new DummyTextFileInput(new string[] {});
+            var textOutput = new DummyTextFileOutput();
 
-            var result = await bootstrap.Run(null, null, null, false);
+            var result = await bootstrap.Run(input, textInput, textOutput, false);
 
-            
+            result.Should().Be(true);
+            textOutput.Contents[ErrorLogName].Should().HaveLength(0);
+            textOutput.Contents[SuccessLogName].Length.Should().BeGreaterThan(0);
         }
 
+        /* 
         [Fact]
         public async Task Run_WithErrorConfiguration_WritesErrorLog()
         {
@@ -107,5 +134,6 @@ namespace Tests
         {
             // IMPORTANT: this needs to run a mixture of failing and succeeding packages on the first run and only successfull packages on the second
         }
+        */
     }
 }

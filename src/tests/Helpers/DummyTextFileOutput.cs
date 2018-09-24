@@ -6,20 +6,20 @@ namespace Tests.Helpers
 {
     public class DummyTextFileOutput : ITextFileOutput
     {
-        private Dictionary<string, string> contents = new Dictionary<string, string>();
+        public Dictionary<string, string> Contents { get; private set; } = new Dictionary<string, string>();
 
         public void WriteAllLines(string path, IEnumerable<string> lines)
         {
-            if(contents.ContainsKey(path))
-                contents.Remove(path);
-            contents.Add(path, string.Join(Environment.NewLine, lines));
+            if(Contents.ContainsKey(path))
+                Contents.Remove(path);
+            Contents.Add(path, string.Join(Environment.NewLine, lines));
         }
 
         public void WriteAllText(string path, string text)
         {
-            if(contents.ContainsKey(path))
-                contents.Remove(path);
-            contents.Add(path, text);
+            if(Contents.ContainsKey(path))
+                Contents.Remove(path);
+            Contents.Add(path, text);
         }
     }
 }

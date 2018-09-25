@@ -14,6 +14,7 @@ namespace Tests
 {
     public class BootstrapTests
     {
+        /* 
         private const string ErrorLogName = "error.log";
         private const string SuccessLogName = "succes.log";
 
@@ -116,7 +117,6 @@ namespace Tests
             textOutput.Contents[SuccessLogName].Length.Should().BeGreaterThan(0);
         }
 
-        /* 
         [Fact]
         public async Task Run_WithErrorConfiguration_WritesErrorLog()
         {

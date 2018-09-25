@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using SharpStrap.Helpers;
 
@@ -103,6 +104,11 @@ namespace SharpStrap.Modules
             output.SetForegroundColor(ConsoleColor.Green);
             output.WriteLine($"Finished '{this.Name}' successfully.");
             output.ResetColors();
+        }
+
+        public bool CanRun(IEnumerable<string> finishedPackages)
+        {
+            return this.Requires.Except(finishedPackages).Any() == false;
         }
     }
 }

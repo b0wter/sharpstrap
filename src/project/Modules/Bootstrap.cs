@@ -83,7 +83,7 @@ namespace SharpStrap.Modules
         /// <param name="columnCount">Number of columns the output devices can render.</param>
         /// <param name="overrideUserDecision">Override the user interaction asking for confirmation.</param>
         /// <returns></returns>
-        public async Task<bool> Run(IIODefinition outputDefinition, ITextFileInput textFileInput, ITextFileOutput textFileOutput, bool overrideUserDecision = false)
+        public async Task<bool> Run(IIOtDefinition outputDefinition, ITextFileInput textFileInput, ITextFileOutput textFileOutput, bool overrideUserDecision = false)
         {
             this.input = outputDefinition.TextReader;
             this.output = outputDefinition.TextWriter;

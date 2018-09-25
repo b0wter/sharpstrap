@@ -10,19 +10,16 @@ namespace SharpStrap.Helpers
         /// <summary>
         /// Returns true if all packages have been run successfully.
         /// </summary>
-        /// <param name="r.IsSuccess"></param>
         /// <returns></returns>
         public bool IsSuccess => results.All(r => r.IsSuccess == true);
         /// <summary>
         /// Number of packages that have been run successfully.
         /// </summary>
-        /// <param name="r.IsSuccess"></param>
         /// <returns></returns>
         public int Successes => results.Count(r => r.IsSuccess);
         /// <summary>
         /// Nmber of packages that ran and failed.
         /// </summary>
-        /// <param name="r.IsSuccess"></param>
         /// <returns></returns>
         public int Errors => results.Count(r => r.IsSuccess == false);
         /// <summary>

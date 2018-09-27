@@ -40,16 +40,7 @@ namespace SharpStrap.Modules
         /// <summary>
         /// Input device, usually the console.
         /// </summary>
-        private TextReader input;
-        /// <summary>
-        /// Output devices, usually the console.
-        /// </summary>
-        private ColoredTextWriter output;
-        /// <summary>
-        /// Number of columns of the current output device.
-        /// </summary>
-        private int columnCount;
-
+        private IIODefinition ioDefinition;
         /// <summary>
         /// List of packages that will be run.
         /// </summary>
@@ -83,20 +74,18 @@ namespace SharpStrap.Modules
         /// <param name="columnCount">Number of columns the output devices can render.</param>
         /// <param name="overrideUserDecision">Override the user interaction asking for confirmation.</param>
         /// <returns></returns>
-        public async Task<bool> Run(IIODefinition outputDefinition, ITextFileInput textFileInput, ITextFileOutput textFileOutput, bool overrideUserDecision = false)
+        public async Task<bool> Run(IIODefinition ioDefinition, ITextFileInput textFileInput, ITextFileOutput textFileOutput, bool overrideUserDecision = false)
         {
-            this.input = outputDefinition.TextReader;
-            this.output = outputDefinition.TextWriter;
-            this.columnCount = outputDefinition.ColumnWidth;
             this.textFileInput = textFileInput;
             this.textFileOutput = textFileOutput;
-
+            this.ioDefinition = ioDefinition;
+            
             AddDefaultVariables();
             try {
                 ValidatePackages();
                 DryRunDependencies();
             } catch (ArgumentException ex) {
-                output.WriteLine($"Execution stopped because: {ex.Message}");
+                this.ioDefinition.TextWriter.WriteLine($"Execution stopped because: {ex.Message}");
                 return false;
             }
 
@@ -194,24 +183,24 @@ namespace SharpStrap.Modules
                 this.Packages.RemoveAll(p => previouslyRunPackages.Contains(p) && p.IgnoreAlreadySolved == false);
                 this.previouslyRunPackages.AddRange(previouslyRunPackages);
 
-                output.WriteLine("The following packages have already been finished:");
-                output.WriteLine();
+                ioDefinition.TextWriter.WriteLine("The following packages have already been finished:");
+                ioDefinition.TextWriter.WriteLine();
                 foreach(var package in previouslyRunPackageNames)
-                    output.WriteLine($" * {package}");
-                output.WriteLine();
-                output.WriteLine($"If you want to repeat these steps remove '{SuccessLogFilename}'.");
+                    ioDefinition.TextWriter.WriteLine($" * {package}");
+                ioDefinition.TextWriter.WriteLine();
+                ioDefinition.TextWriter.WriteLine($"If you want to repeat these steps remove '{SuccessLogFilename}'.");
             }
         }
 
         private void PrintPackageLogSummary()
         {
-            output.WriteLine($"The following packages have been finished previously and will not be run:");
+            this.ioDefinition.TextWriter.WriteLine($"The following packages have been finished previously and will not be run:");
             foreach(var package in this.previouslyRunPackages)
-                output.WriteLine(package.Name);
+                this.ioDefinition.TextWriter.WriteLine(package.Name);
 
-            output.WriteLine($"The following packages will be run:");
+            ioDefinition.TextWriter.WriteLine($"The following packages will be run:");
             foreach(var package in Packages)
-                output.WriteLine(package.Name);
+                this.ioDefinition.TextWriter.WriteLine(package.Name);
         }
 
         /// <summary>
@@ -223,13 +212,13 @@ namespace SharpStrap.Modules
         {
             int noOfPackages = Packages.Count();
             int noOfModules = Packages.Sum(p => p.Modules.Count());
-            output.WriteLine($"This bootstrap configuration contains {noOfPackages} Packages with a total of {noOfModules} operations.");
-            output.WriteLine();
+            this.ioDefinition.TextWriter.WriteLine($"This bootstrap configuration contains {noOfPackages} Packages with a total of {noOfModules} operations.");
+            this.ioDefinition.TextWriter.WriteLine();
 
-            output.WriteLine($"{"NAME".PadRight(PackageNameWidth)} {"OPS".PadRight(PackageModuleCountWidth)} {"CRITICAL".PadRight(PackageIsCriticalWidth)} DESCRIPTION");
-            output.WriteLine(new String('=', this.columnCount));
+            this.ioDefinition.TextWriter.WriteLine($"{"NAME".PadRight(PackageNameWidth)} {"OPS".PadRight(PackageModuleCountWidth)} {"CRITICAL".PadRight(PackageIsCriticalWidth)} DESCRIPTION");
+            this.ioDefinition.TextWriter.WriteLine(new String('=', this.ioDefinition.ColumnWidth));
 
-            int remainingWidth = this.columnCount - PackageNameWidth - PackageModuleCountWidth - PackageIsCriticalWidth - 3;
+            int remainingWidth = this.ioDefinition.ColumnWidth - PackageNameWidth - PackageModuleCountWidth - PackageIsCriticalWidth - 3;
 
             foreach(var package in Packages)
             {
@@ -248,7 +237,7 @@ namespace SharpStrap.Modules
                 else
                     paddedDescription = package.Description;
 
-                output.WriteLine($"{paddedName} {paddedModuleCount} {paddedIsCritical} {paddedDescription}");
+                this.ioDefinition.TextWriter.WriteLine($"{paddedName} {paddedModuleCount} {paddedIsCritical} {paddedDescription}");
             }
 
             if(overrideUserDecision)
@@ -257,13 +246,13 @@ namespace SharpStrap.Modules
             }
             else
             {
-                output.WriteLine();
-                output.WriteLine("Do you want to continue? (y/N)");
+                this.ioDefinition.TextWriter.WriteLine();
+                this.ioDefinition.TextWriter.WriteLine("Do you want to continue? (y/N)");
                 char readChar = (char)0;
                 while(char.IsLetter(readChar) == false && char.IsNumber(readChar) == false)
-                    readChar = (char)input.Read();
+                    readChar = (char)this.ioDefinition.TextReader.Read();
 
-                output.WriteLine();
+                this.ioDefinition.TextWriter.WriteLine();
                 return readChar == 'y' || readChar == 'Y';
             }
         }
@@ -285,16 +274,16 @@ namespace SharpStrap.Modules
 
                 if (solvablePackages.Count == 0)
                 {
-                    output.SetForegroundColor(ConsoleColor.Red);
-                    output.WriteLine($"There are {packages.Count()} packages left to work on but their requirements have not been met.");
-                    output.ResetColors();
+                    this.ioDefinition.TextWriter.SetForegroundColor(ConsoleColor.Red);
+                    this.ioDefinition.TextWriter.WriteLine($"There are {packages.Count()} packages left to work on but their requirements have not been met.");
+                    this.ioDefinition.TextWriter.ResetColors();
                     return;
                 }
 
                 foreach(var package in solvablePackages)
                 {
                     try{
-                        await package.Run(output, this.GlobalVariables);
+                        await package.Run(this.ioDefinition.TextWriter, this.GlobalVariables);
 
                         // Add the package to the solved dependencies so that the depending packages can be run.
                         //
@@ -303,12 +292,12 @@ namespace SharpStrap.Modules
                     }
                     catch(ShellCommandException ex)
                     {
-                        output.WriteLine($"Encountered an {ex.GetType().Name} with: {ex.Message}");
+                        this.ioDefinition.TextWriter.WriteLine($"Encountered an {ex.GetType().Name} with: {ex.Message}");
                         unsolved.Add(package);
                         packages.Remove(package);
                         if(package.IsCritical)
                         {
-                            output.WriteLine("Bootstrapping won't continue as this is a critical package.");
+                            this.ioDefinition.TextWriter.WriteLine("Bootstrapping won't continue as this is a critical package.");
                             return;
                         }
                     }
@@ -333,16 +322,16 @@ namespace SharpStrap.Modules
             }
             catch(UnauthorizedAccessException)
             {
-                output.SetForegroundColor(ConsoleColor.Red);
-                output.WriteLine($"Could not write log to '{SuccessLogFilename} because access was denied!");
-                output.ResetColors();
+                this.ioDefinition.TextWriter.SetForegroundColor(ConsoleColor.Red);
+                this.ioDefinition.TextWriter.WriteLine($"Could not write log to '{SuccessLogFilename} because access was denied!");
+                this.ioDefinition.TextWriter.ResetColors();
             }
             catch(IOException ex)
             {
-                output.SetForegroundColor(ConsoleColor.Red);
-                output.WriteLine($"Could not write log to '{SuccessLogFilename} because a general IO exception was raised:");
-                output.ResetColors();
-                output.WriteLine(ex.Message);
+                this.ioDefinition.TextWriter.SetForegroundColor(ConsoleColor.Red);
+                this.ioDefinition.TextWriter.WriteLine($"Could not write log to '{SuccessLogFilename} because a general IO exception was raised:");
+                this.ioDefinition.TextWriter.ResetColors();
+                this.ioDefinition.TextWriter.WriteLine(ex.Message);
             }
         }
 
@@ -358,27 +347,27 @@ namespace SharpStrap.Modules
 
         private void PrintResults()
         {
-            output.WriteLine();
+            this.ioDefinition.TextWriter.WriteLine();
             PrintResultSummary();
             PrintResultHeader();
             PrintResultsFor(this.previouslyRunPackages, "PREV");
             PrintResultsFor(this.solvedPackages, "SUCCESS", ConsoleColor.Green);
             PrintResultsFor(this.unsolvedPackages, "FAILED", ConsoleColor.Red);
-            output.ResetColors();
+            this.ioDefinition.TextWriter.ResetColors();
         }
 
         private void PrintResultSummary()
         {
-            output.WriteLine($"{this.unsolvedPackages.Count} packages have not been run due to errors or unmet requirements.");
-            output.WriteLine($"{this.solvedPackages.Count} packages have been run successfully.");
-            output.WriteLine($"{this.previouslyRunPackages.Count} packages have been run previously and will not be run again.");
+            this.ioDefinition.TextWriter.WriteLine($"{this.unsolvedPackages.Count} packages have not been run due to errors or unmet requirements.");
+            this.ioDefinition.TextWriter.WriteLine($"{this.solvedPackages.Count} packages have been run successfully.");
+            this.ioDefinition.TextWriter.WriteLine($"{this.previouslyRunPackages.Count} packages have been run previously and will not be run again.");
         }
 
         private void PrintResultHeader()
         {
-            output.WriteLine();
-            output.WriteLine($"{"NAME".PadRight(PackageNameWidth)} {"RESULT".PadRight(PackageModuleCountWidth)}");
-            output.WriteLine(new String('=', this.columnCount));
+            this.ioDefinition.TextWriter.WriteLine();
+            this.ioDefinition.TextWriter.WriteLine($"{"NAME".PadRight(PackageNameWidth)} {"RESULT".PadRight(PackageModuleCountWidth)}");
+            this.ioDefinition.TextWriter.WriteLine(new String('=', this.ioDefinition.ColumnWidth));
         }
 
         private void PrintResultsFor(IEnumerable<Package> packages, string status, ConsoleColor resultColor = ConsoleColor.White)
@@ -393,7 +382,7 @@ namespace SharpStrap.Modules
             {
                 var packageName = string.IsNullOrWhiteSpace(p?.Name) ? "no name?" : p.Name;
                 var paddedPackageName = packageName.PadRight(PackageNameWidth);
-                output.WriteLine($"{paddedPackageName} {paddedStatus}");
+                this.ioDefinition.TextWriter.WriteLine($"{paddedPackageName} {paddedStatus}");
             }
         }
     }

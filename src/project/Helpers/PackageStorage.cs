@@ -18,19 +18,31 @@ namespace SharpStrap.Helpers
         /// <summary>
         /// There are unsatisfiable requirements.
         /// </summary>
-        Unresolvable
+        Unresolvable,
+        /// <summary>
+        /// The package has been run successfully.
+        /// </summary>
+        Solved,
+        /// <summary>
+        /// The package has been run and failed.
+        /// </summary>
+        Failed
     }
+
     public class PackageStorage
     {
-        // TODO: Maybe use a single List but add a flag for the status.
-        public Storage<Package> SolvedPackages { get; private set; }
-        public Storage<Package> UnsolvedPackages { get; private set; }
-        public Storage<Package> FailedPackages { get; private set; }
-        public Storage<Package> PackagePool { get; private set; }
-        public Storage<Package> UnresolvablePackages { get; private set; }
+        public Dictionary<PackageEvaluationStates, IList<Package>> PackagePool { get; private set; }
 
-        public bool HasRemainingPackages => PackagePool?.Count >= 0;
+        /// <summary>
+        /// Reads the given log file and moves set packages to successful.
+        /// </summary>
+        /// <param name="successLogFilename"></param>
+        public void InitFromLogFile(string successLogFilename)
+        {
+            
+        }
 
+        /* 
         /// <summary>
         /// Returns a package whose requirements have been met. If there are no packages left null will be returned.
         /// </summary>
@@ -100,5 +112,16 @@ namespace SharpStrap.Helpers
             else
                 return PackageEvaluationStates.UnmetDependency;
         }
+
+        public static PackageStorage FromFiles(IEnumerable<Package> packages, string successLog, string errorLog)
+        {
+            var successPackages = new List<Package>();
+            foreach(var )
+        }
+
+        private static string[] GetPackageNamesFromFile(string filename)
+        {
+
+        }*/
     }
 }

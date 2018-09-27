@@ -6,7 +6,17 @@ using System.Reflection;
 
 namespace SharpStrap.Helpers
 {
-    internal class ModuleFinder
+    internal interface IModuleFinder
+    {
+        string TrimEnd { get; }
+        string TrimStart { get; }
+        string Prefix { get; }
+        string Suffix { get; }
+
+        IEnumerable<(string Name, Type Type)> GetAllModulesForModulesNamespace();
+    }
+
+    internal class ModuleFinder : IModuleFinder
     {
         public string TrimEnd { get; set; }
         public string TrimStart { get; set; }
@@ -45,6 +55,18 @@ namespace SharpStrap.Helpers
                             t.Name.EndsWith(TrimEnd) &&
                             t.Namespace.EndsWith(name)
                           );
+        }
+        
+        internal static ModuleFinder CreateDefault()
+        {
+            var moduleFinder = new ModuleFinder
+            {
+                Prefix = "tag:yaml.org,2002:",
+                Suffix = "",
+                TrimStart = "",
+                TrimEnd = "Module"
+            };
+            return moduleFinder;
         }
     }
 }

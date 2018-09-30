@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using SharpStrap.Modules;
@@ -36,12 +37,18 @@ namespace SharpStrap.Helpers
 
     public class PackageStorage
     {
+        /// <summary>
+        /// Base name of the logs. The package states will be appended to this name.
+        /// </summary>
+        public string LogName { get; set; } = "bootstrap.log";
+        
         protected readonly Dictionary<PackageEvaluationStates, IList<Package>> packagePool;
         protected readonly ITextFileOutput textOutput;
 
-        public PackageStorage(ITextFileOutput textOutput, string[] successfulPackageNames, IEnumerable<Package> packages)
+        public PackageStorage(string logName, ITextFileOutput textOutput, string[] successfulPackageNames, IEnumerable<Package> packages)
         {
             // set private variables
+            this.LogName = logName;
             this.textOutput = textOutput;
             this.packagePool = new Dictionary<PackageEvaluationStates, IList<Package>>();
             
@@ -146,6 +153,34 @@ namespace SharpStrap.Helpers
                 return PackageEvaluationStates.Ready;
             else
                 return PackageEvaluationStates.UnmetDependency;
+        }
+
+        /// <summary>
+        /// Writes the current state of the packages to the <see cref="ITextFileOutput"/>.
+        /// </summary>
+        public void LogResult()
+        {
+            // TODO: rethink this as it destroys the original stack traces!
+            
+            var errorLogs = new List<string>();
+            foreach (var state in Enum.GetValues(typeof(PackageEvaluationStates)).Cast<PackageEvaluationStates>())
+            {
+                try
+                {
+                    var logName = this.LogName + state.ToString();
+                    this.textOutput.WriteAllLines(logName, this.packagePool[state].Select(p => p.Name));
+                }
+                catch
+                {
+                    errorLogs.Add(state.ToString());
+                }
+            }
+
+            if (errorLogs.Any())
+            {
+                var joinedNames = string.Join(", ", errorLogs);
+                throw new IOException($"The following logs could not be written: {joinedNames}.");
+            }
         }
     }
 }

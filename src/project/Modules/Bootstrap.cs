@@ -40,11 +40,7 @@ namespace SharpStrap.Modules
         /// <summary>
         /// Filename for the logfile containing the successful packages. No file will be written if it's empty.
         /// </summary>
-        public string SuccessLogFilename { get; set; } = "bootstrap.success";
-        /// <summary>
-        /// Filename for the logfile containing the failed packages. No file will be written if it's empty.
-        /// </summary>
-        public string ErrorLogFilename { get; set; } = "bootstrap.error";
+        public string LogFilename { get; set; } = "bootstrap.log.";
         /// <summary>
         /// Global variables are injected into every package that is executed.
         /// </summary>

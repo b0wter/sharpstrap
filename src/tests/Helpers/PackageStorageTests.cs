@@ -165,5 +165,7 @@ namespace Tests.Helpers
 
             storage.OrderedPackages[PackageEvaluationStates.Solved].Should().Contain(packages.First());
         }
+        
+        // TODO: Add test for LogResult.
     }
 }

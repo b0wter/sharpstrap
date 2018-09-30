@@ -10,7 +10,7 @@ namespace Tests.Modules.Shims
         public IDictionary<PackageEvaluationStates, IList<Package>> OrderedPackages => this.packagePool;
 
         public TestablePackageStorage(ITextFileOutput textOutput, string[] successfulPackageNames, IEnumerable<Package> packages) 
-            : base("default.log.", textOutput, successfulPackageNames, packages)
+            : base(textOutput, successfulPackageNames, packages)
         {
             //
         }

@@ -37,18 +37,12 @@ namespace SharpStrap.Helpers
 
     public class PackageStorage
     {
-        /// <summary>
-        /// Base name of the logs. The package states will be appended to this name.
-        /// </summary>
-        public string LogName { get; set; } = "bootstrap.log";
-        
         protected readonly Dictionary<PackageEvaluationStates, IList<Package>> packagePool;
         protected readonly ITextFileOutput textOutput;
 
-        public PackageStorage(string logName, ITextFileOutput textOutput, string[] successfulPackageNames, IEnumerable<Package> packages)
+        public PackageStorage(ITextFileOutput textOutput, string[] successfulPackageNames, IEnumerable<Package> packages)
         {
             // set private variables
-            this.LogName = logName;
             this.textOutput = textOutput;
             this.packagePool = new Dictionary<PackageEvaluationStates, IList<Package>>();
             
@@ -158,7 +152,7 @@ namespace SharpStrap.Helpers
         /// <summary>
         /// Writes the current state of the packages to the <see cref="ITextFileOutput"/>.
         /// </summary>
-        public void LogResult()
+        public void LogResult(string filename)
         {
             // TODO: rethink this as it destroys the original stack traces!
             
@@ -167,7 +161,7 @@ namespace SharpStrap.Helpers
             {
                 try
                 {
-                    var logName = this.LogName + state.ToString();
+                    var logName = filename + state.ToString();
                     this.textOutput.WriteAllLines(logName, this.packagePool[state].Select(p => p.Name));
                 }
                 catch

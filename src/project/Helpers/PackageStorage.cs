@@ -1,12 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using SharpStrap.Modules;
 
 namespace SharpStrap.Helpers
 {
     public enum PackageEvaluationStates
     {
+        /// <summary>
+        /// Requirements have not been checked.
+        /// </summary>
+        NotEvaluated,
         /// <summary>
         /// Package can be run.
         /// </summary>
@@ -31,97 +36,116 @@ namespace SharpStrap.Helpers
 
     public class PackageStorage
     {
-        public Dictionary<PackageEvaluationStates, IList<Package>> PackagePool { get; private set; }
+        protected readonly Dictionary<PackageEvaluationStates, IList<Package>> packagePool;
+        protected readonly ITextFileOutput textOutput;
 
-        /// <summary>
-        /// Reads the given log file and moves set packages to successful.
-        /// </summary>
-        /// <param name="successLogFilename"></param>
-        public void InitFromLogFile(string successLogFilename)
+        public PackageStorage(ITextFileOutput textOutput, string[] successfulPackageNames, IEnumerable<Package> packages)
         {
+            // set private variables
+            this.textOutput = textOutput;
+            this.packagePool = new Dictionary<PackageEvaluationStates, IList<Package>>();
             
+            // populate the dictionary with all values of the PackageEvaluationStates enum
+            foreach (var value in Enum.GetValues(typeof(PackageEvaluationStates)).Cast<PackageEvaluationStates>())
+                packagePool.Add(value, new List<Package>());
+            
+            // add the packages to the package pool
+            if (successfulPackageNames == null)
+                successfulPackageNames = new string[0];
+            foreach(var package in packages)
+                if(successfulPackageNames.Contains(package.Name))
+                    packagePool[PackageEvaluationStates.Solved].Add(package);
+                else
+                    packagePool[PackageEvaluationStates.NotEvaluated].Add(package);
         }
-
-        /* 
-        /// <summary>
-        /// Returns a package whose requirements have been met. If there are no packages left null will be returned.
-        /// </summary>
-        /// <exception cref="ArgumentException">If there is no package left whose requirements have been met.</exception>
-        /// <returns>Package whose requirements have been met.</returns>
+        
         public Package GetNextPackage()
         {
-            if(PackagePool.Count == 0)
-                return null;
+            EvaluatePackages();
+            return this.packagePool[PackageEvaluationStates.Ready].FirstOrDefault();
+        }
 
-            int counter = this.PackagePool.Count;;
-            while(counter >= 0)
+        public void MarkPackageSolved(Package p)
+        {
+            if(p == null)
+                throw new ArgumentException($"Cannot mark 'null' as solved.");
+            
+            if (this.packagePool[PackageEvaluationStates.Ready].Contains(p))
             {
-                var state = CheckPackageState(this.PackagePool[counter]);
-                switch(state)
+                this.packagePool[PackageEvaluationStates.Ready].Remove(p);
+                this.packagePool[PackageEvaluationStates.Solved].Add(p);
+            }
+            else
+            {
+                var (found, state) = TryGetEvaluationStateForPackage(p, PackageEvaluationStates.NotEvaluated);
+                if(found)
+                    throw new ArgumentException($"The package '{p.Name}' is not in the 'Ready'-state and thus cannot be marked solved. It was found in the '{state}'-state.");
+                else
+                    throw new ArgumentException($"The package '{p.Name}' does not exist in the storage.");
+            }
+        }
+
+        private (bool, PackageEvaluationStates) TryGetEvaluationStateForPackage(Package p, PackageEvaluationStates fallback)
+        {
+            foreach(var state in Enum.GetValues(typeof(PackageEvaluationStates)).Cast<PackageEvaluationStates>())
+                if (this.packagePool[state].Contains(p))
+                    return (true, state);
+
+            return (false, fallback);
+        }
+
+        /// <summary>
+        /// Iterates through all remaining packages and checks if their requirements have been met. 
+        /// </summary>
+        private void EvaluatePackages()
+        {
+            var packagesToCheck = GetAllPackagesToCheck().ToArray();
+
+            foreach (var package in packagesToCheck)
+            {
+                var newState = CheckPackageState(package);
+                var (found, currentState) = TryGetEvaluationStateForPackage(package, PackageEvaluationStates.NotEvaluated);
+
+                if (found)
                 {
-                    case PackageEvaluationStates.Unresolvable:
-                        this.UnresolvablePackages.Add(this.PackagePool[counter]);
-                        this.PackagePool.RemoveAt(counter);
-                        counter--;
-                        break;
-                    case PackageEvaluationStates.UnmetDependency:
-                        counter--;
-                        break;
-                    case PackageEvaluationStates.Ready:
-                        return this.PackagePool[counter];
+                    this.packagePool[currentState].Remove(package);                   
+                    this.packagePool[newState].Add(package);
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Encountered an error while trying to evaluate all package states: Could not find the current state for a package.");
                 }
             }
-
-            // this point should only be reached if there are unresolvable packages
-            MoveRemainingPoolPackagesToUnsolvable();
-            var aggregatedUnresolvableNames = string.Join(", ", this.UnresolvablePackages.Select(p => p.Name));
-            throw new ArgumentException($"There are packages whose requirements cannot be met: {aggregatedUnresolvableNames}.");
         }
 
-        private void FailWithUnresovablePackages()
+        /// <summary>
+        /// Returns all packages that need to be run (Ready, NotEvaluated, UnmetDepedency).
+        /// </summary>
+        /// <returns></returns>
+        private IEnumerable<Package> GetAllPackagesToCheck()
         {
-            MoveRemainingPoolPackagesToUnsolvable();
-            var aggregatedUnresolvableNames = string.Join(", ", UnresolvablePackages.Select(p => p.Name));
-            throw new ArgumentException($"There are packages whose requirements cannot be met: {aggregatedUnresolvableNames}.");
-        }
-
-        private void MoveRemainingPoolPackagesToUnsolvable()
-        {
-            for(int i = PackagePool.Count - 1; i >= 0; --i)
-            {
-                UnresolvablePackages.Add(PackagePool[i]);
-                PackagePool.RemoveAt(i);
-            }
+            return this.packagePool[PackageEvaluationStates.Ready]
+                       .Union(packagePool[PackageEvaluationStates.NotEvaluated])
+                       .Union(packagePool[PackageEvaluationStates.UnmetDependency]);
         }
 
         private PackageEvaluationStates CheckPackageState(Package package)
         {
-            if(package.Requires.Count() == 0)
+            if(package.Requires.Any() == false)
                 return PackageEvaluationStates.Ready;
 
             if(package.Requires
-                      .Any( r => this.UnresolvablePackages.Any(p => p.Name == r) || this.FailedPackages.Any(p => p.Name == r))) 
+                      .Any( r => this.packagePool[PackageEvaluationStates.Unresolvable].Any(p => p.Name == r) || this.packagePool[PackageEvaluationStates.Failed].Any(p => p.Name == r))) 
             {
                 // At least one requirement for this package is unsatisfiable.
                 return PackageEvaluationStates.Unresolvable;
             }
 
-            var solvedPackageNames = this.SolvedPackages.Select(p => p.Name);
-            if(package.Requires.Except(solvedPackageNames).Count() == 0)
+            var solvedPackageNames = this.packagePool[PackageEvaluationStates.Solved].Select(p => p.Name);
+            if(package.Requires.Except(solvedPackageNames).Any() == false)
                 return PackageEvaluationStates.Ready;
             else
                 return PackageEvaluationStates.UnmetDependency;
         }
-
-        public static PackageStorage FromFiles(IEnumerable<Package> packages, string successLog, string errorLog)
-        {
-            var successPackages = new List<Package>();
-            foreach(var )
-        }
-
-        private static string[] GetPackageNamesFromFile(string filename)
-        {
-
-        }*/
     }
 }

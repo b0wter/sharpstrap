@@ -1,16 +1,19 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 using SharpStrap.Helpers;
 using System.Runtime.InteropServices;
+using YamlDotNet.Serialization;
 
 namespace SharpStrap.Modules
 {
     /// <summary>
     /// Holds all information for a complete bootstrap process.
     /// </summary>
+    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")] // public needed bc of yaml deserialization
     public class Bootstrap
     {
         /// <summary>
@@ -26,25 +29,14 @@ namespace SharpStrap.Modules
         /// </summary>
         private const int PackageIsCriticalWidth = 8;
         /// <summary>
-        /// List of packages that executred successfully.
-        /// </summary>
-        private List<Package> solvedPackages = new List<Package>();
-        /// <summary>
-        /// List of packages that failed execution.
-        /// </summary>
-        private List<Package> unsolvedPackages = new List<Package>();
-        /// <summary>
-        /// List of packages that have previously run and will not be run this time.
-        /// </summary>
-        private List<Package> previouslyRunPackages = new List<Package>();
-        /// <summary>
         /// Input device, usually the console.
         /// </summary>
         private IIODefinition ioDefinition;
         /// <summary>
-        /// List of packages that will be run.
+        /// List of packages that will be run. Needed for deserialization but emptied afterwards.
         /// </summary>
-        public List<Package> Packages { get; set; } = new List<Package>();
+        [YamlMember(Alias = "Packages", ApplyNamingConventions = false)]
+        public List<Package> RawPackages { get; set; } = new List<Package>();
         /// <summary>
         /// Filename for the logfile containing the successful packages. No file will be written if it's empty.
         /// </summary>
@@ -57,15 +49,24 @@ namespace SharpStrap.Modules
         /// Global variables are injected into every package that is executed.
         /// </summary>
         public IDictionary<string, string> GlobalVariables { get; set; } = new Dictionary<string, string>();
-
         /// <summary>
         /// List of packages that will be run at the end of the bootstrap process. Regular packages may not depend on these.
         /// </summary>
         public List<Package> CleanupPackages { get; set; } = new List<Package>();
 
+        /// <summary>
+        /// Used to read text files from the local filesystem.
+        /// </summary>
         private ITextFileInput textFileInput;
+        /// <summary>
+        /// Used to write text files to the local filesystem.
+        /// </summary>
         private ITextFileOutput textFileOutput;
-
+        /// <summary>
+        /// Contains all packages and their current states (run successfully, failed, ...).
+        /// </summary>
+        private readonly PackageStorage packages;
+        
         /// <summary>
         /// Initializes and runs the bootstrap process.
         /// </summary>
@@ -76,11 +77,15 @@ namespace SharpStrap.Modules
         /// <returns></returns>
         public async Task<bool> Run(IIODefinition ioDefinition, ITextFileInput textFileInput, ITextFileOutput textFileOutput, bool overrideUserDecision = false)
         {
+            await Task.Delay(1);
+            return false;
+            /*
             this.textFileInput = textFileInput;
             this.textFileOutput = textFileOutput;
             this.ioDefinition = ioDefinition;
             
             AddDefaultVariables();
+            
             try {
                 ValidatePackages();
                 DryRunDependencies();
@@ -106,8 +111,10 @@ namespace SharpStrap.Modules
 
             PrintResults();
             return true;
+            */
         }
 
+        /*
         private void AddDefaultVariables()
         {
             this.GlobalVariables.Add("username", Environment.UserName);
@@ -385,5 +392,6 @@ namespace SharpStrap.Modules
                 this.ioDefinition.TextWriter.WriteLine($"{paddedPackageName} {paddedStatus}");
             }
         }
+        */
     }
 }

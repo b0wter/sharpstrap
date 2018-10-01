@@ -165,6 +165,39 @@ namespace Tests.Helpers
 
             storage.OrderedPackages[PackageEvaluationStates.Solved].Should().Contain(packages.First());
         }
+
+        [Fact]
+        public void MarkPackageFailed_WithNullPackage_ThrowsArgumentException()
+        {
+            var packages = CreateDefaultPackages();
+            var textOutput = A.Fake<ITextFileOutput>();
+            var storage = new TestablePackageStorage(textOutput, new string[0], packages);
+            
+            Assert.Throws<ArgumentException>(() => storage.MarkPackageFailed(null)).Message.Should().Contain("Cannot mark 'null' as solved.");
+        }
+
+        [Fact]
+        public void MarkPackageFailed_WithNonExistingPackage_ThrowsArgumentException()
+        {
+            var packages = CreateDefaultPackages();
+            var textOutput = A.Fake<ITextFileOutput>();
+            var storage = new TestablePackageStorage(textOutput, new string[0], packages);
+
+            Assert.Throws<ArgumentException>(() => storage.MarkPackageFailed(new Package())).Message.Should().Contain("does not exist in the storage.");
+        }
+
+        [Fact]
+        public void MarkPackageFailed_WithPackageInCorrectState_Runs()
+        {
+            var packages = CreateDefaultPackages().ToArray();
+            var textOutput = A.Fake<ITextFileOutput>();
+            var storage = new TestablePackageStorage(textOutput, new string[0], packages);
+
+            var p = storage.GetNextPackage();
+            storage.MarkPackageSolved(packages.First());
+
+            storage.OrderedPackages[PackageEvaluationStates.Failed].Should().Contain(packages.First());
+        }
         
         // TODO: Add test for LogResult.
     }

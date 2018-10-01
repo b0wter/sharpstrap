@@ -68,13 +68,23 @@ namespace SharpStrap.Helpers
 
         public void MarkPackageSolved(Package p)
         {
+            MarkPackageAs(p, PackageEvaluationStates.Solved);
+        }
+        
+        public void MarkPackageFailed(Package p)
+        {
+            MarkPackageAs(p, PackageEvaluationStates.Failed);
+        }
+
+        private void MarkPackageAs(Package p, PackageEvaluationStates newState)
+        {
             if(p == null)
                 throw new ArgumentException($"Cannot mark 'null' as solved.");
             
             if (this.packagePool[PackageEvaluationStates.Ready].Contains(p))
             {
                 this.packagePool[PackageEvaluationStates.Ready].Remove(p);
-                this.packagePool[PackageEvaluationStates.Solved].Add(p);
+                this.packagePool[newState].Add(p);
             }
             else
             {

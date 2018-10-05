@@ -68,6 +68,10 @@ namespace SharpStrap.Modules
         /// Contains all packages and their current states for the cleanup operation.
         /// </summary>
         private PackageStorage cleanupPackages;
+        /// <summary>
+        /// Reads and writes the status of the bootstrap operation into a specific storage.
+        /// </summary>
+        private IBootstrapStatusLogger statusLogger;
         
         /// <summary>
         /// Initializes and runs the bootstrap process.
@@ -77,11 +81,12 @@ namespace SharpStrap.Modules
         /// <param name="columnCount">Number of columns the output devices can render.</param>
         /// <param name="overrideUserDecision">Override the user interaction asking for confirmation.</param>
         /// <returns></returns>
-        public async Task<bool> Run(IIODefinition ioDefinition, ITextFileInput textFileInput, ITextFileOutput textFileOutput, bool overrideUserDecision = false)
+        public async Task<bool> Run(IBootstrapStatusLogger statusLogger, IIODefinition ioDefinition, ITextFileInput textFileInput, ITextFileOutput textFileOutput, bool overrideUserDecision = false)
         {
             this.textFileInput = textFileInput;
             this.textFileOutput = textFileOutput;
             this.ioDefinition = ioDefinition;
+            this.statusLogger = statusLogger;
             
             // TODO: PackageStorages need to be initialized!
             

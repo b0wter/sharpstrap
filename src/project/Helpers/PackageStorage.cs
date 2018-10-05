@@ -39,6 +39,7 @@ namespace SharpStrap.Helpers
     {
         private const PackageEvaluationStates DefaultPackageState = PackageEvaluationStates.NotEvaluated;
         private const PackageEvaluationStates DefaultSuccessSate = PackageEvaluationStates.Solved;
+        private const PackageEvaluationStates DefaultFailedState = PackageEvaluationStates.Failed;
         
         public IEnumerable<Package> All
         {
@@ -69,12 +70,10 @@ namespace SharpStrap.Helpers
         }
 
         protected readonly Dictionary<PackageEvaluationStates, IList<Package>> packagePool;
-        protected readonly ITextFileOutput textOutput;
 
-        public PackageStorage(ITextFileOutput textOutput, string[] successfulPackageNames, IEnumerable<Package> packages)
+        public PackageStorage(IEnumerable<LogEntry> logEntries, IEnumerable<Package> packages)
         {
             // set private variables
-            this.textOutput = textOutput;
             this.packagePool = new Dictionary<PackageEvaluationStates, IList<Package>>();
             
             // populate the dictionary with all values of the PackageEvaluationStates enum
@@ -82,10 +81,12 @@ namespace SharpStrap.Helpers
                 packagePool.Add(value, new List<Package>());
             
             // add the packages to the package pool
-            if (successfulPackageNames == null)
-                successfulPackageNames = new string[0];
+            if (logEntries == null)
+                logEntries = new LogEntry[0];
             foreach(var package in packages)
-                if(successfulPackageNames.Contains(package.Name))
+                if(logEntries.Any(entry => 
+                        entry.Name == package.Name && 
+                        string.Equals(entry.Status, DefaultSuccessSate.ToString(), StringComparison.InvariantCultureIgnoreCase)))
                     packagePool[DefaultSuccessSate].Add(package);
                 else
                     packagePool[DefaultPackageState].Add(package);
@@ -282,32 +283,19 @@ namespace SharpStrap.Helpers
         }
         
         /// <summary>
-        /// Writes the current state of the packages to the <see cref="ITextFileOutput"/>.
+        /// Gets a list of log entries based on whether they ran successfully or not.
         /// </summary>
-        public void LogResult(string filename)
+        public IEnumerable<LogEntry> GetLogResult()
         {
-            // TODO: rethink this as it destroys the original stack traces!
-            // TODO: Move this out of the PackageStorage. It should not create a 
-            
-            var errorLogs = new List<string>();
-            foreach (var state in Enum.GetValues(typeof(PackageEvaluationStates)).Cast<PackageEvaluationStates>())
-            {
-                try
-                {
-                    var logName = filename + state.ToString();
-                    this.textOutput.WriteAllLines(logName, this.packagePool[state].Select(p => p.Name));
-                }
-                catch(Exception ex)
-                {
-                    errorLogs.Add($"{state.ToString()} ({ex.GetType()})");
-                }
-            }
+            var success = this.packagePool[PackageEvaluationStates.Solved].Select(x => new LogEntry
+                {Name = x.Name, Status = DefaultSuccessSate.ToString()});
 
-            if (errorLogs.Any())
-            {
-                var joinedNames = string.Join(", ", errorLogs);
-                throw new IOException($"The following logs could not be written: {joinedNames}.");
-            }
+            var nonFinishedStates = Enum.GetValues(typeof(PackageEvaluationStates))
+                .Cast<PackageEvaluationStates>()
+                .SelectMany(x => this.packagePool[x])
+                .Select(x => new LogEntry { Name = x.Name, Status = DefaultFailedState.ToString()});
+
+            return success.Union(nonFinishedStates);
         }
     }
 }

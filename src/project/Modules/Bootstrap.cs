@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
+using System.Reflection.Metadata;
 using SharpStrap.Helpers;
 using System.Runtime.InteropServices;
 using YamlDotNet.Serialization;
@@ -40,7 +41,7 @@ namespace SharpStrap.Modules
         /// <summary>
         /// Filename for the logfile containing the successful packages. No file will be written if it's empty.
         /// </summary>
-        public string LogFilename { get; set; } = "bootstrap.log.";
+        public string LogFilename { get; set; } = "bootstrap.log";
         /// <summary>
         /// Global variables are injected into every package that is executed.
         /// </summary>
@@ -48,7 +49,8 @@ namespace SharpStrap.Modules
         /// <summary>
         /// List of packages that will be run at the end of the bootstrap process. Regular packages may not depend on these.
         /// </summary>
-        public List<Package> CleanupPackages { get; set; } = new List<Package>();
+        [YamlMember(Alias = "CleanupPackages", ApplyNamingConventions = false)]
+        public List<Package> RawCleanupPackages { get; set; } = new List<Package>();
 
         /// <summary>
         /// Used to read text files from the local filesystem.
@@ -61,7 +63,11 @@ namespace SharpStrap.Modules
         /// <summary>
         /// Contains all packages and their current states (run successfully, failed, ...).
         /// </summary>
-        private readonly PackageStorage packages;
+        private PackageStorage packages;
+        /// <summary>
+        /// Contains all packages and their current states for the cleanup operation.
+        /// </summary>
+        private PackageStorage cleanupPackages;
         
         /// <summary>
         /// Initializes and runs the bootstrap process.
@@ -73,20 +79,19 @@ namespace SharpStrap.Modules
         /// <returns></returns>
         public async Task<bool> Run(IIODefinition ioDefinition, ITextFileInput textFileInput, ITextFileOutput textFileOutput, bool overrideUserDecision = false)
         {
-            await Task.Delay(1);
-            return false;
-            /*
             this.textFileInput = textFileInput;
             this.textFileOutput = textFileOutput;
             this.ioDefinition = ioDefinition;
             
+            // TODO: PackageStorages need to be initialized!
+            
             AddDefaultVariables();
             
-            try {
-                ValidatePackages();
-                DryRunDependencies();
-            } catch (ArgumentException ex) {
-                this.ioDefinition.TextWriter.WriteLine($"Execution stopped because: {ex.Message}");
+            this.packages.ValidatePackages();
+            
+            if (this.packages.DryRunDependencies())
+            {
+                this.ioDefinition.TextWriter.WriteLine("Execution stopped because the dry run was not successful.");
                 return false;
             }
 
@@ -94,10 +99,9 @@ namespace SharpStrap.Modules
             {
                 LoadSolvedPackagesFromLog();
                 PrintPackageLogSummary();
-                await RunAllPackages(this.Packages);
-                LogPackagesToFile(this.solvedPackages, SuccessLogFilename);
-                LogPackagesToFile(this.unsolvedPackages, ErrorLogFilename);
-                await RunAllPackages(this.CleanupPackages);
+                await RunAllPackages(this.packages);
+                this.packages.LogResult(this.LogFilename);
+                await RunAllPackages(this.cleanupPackages);
             }
             else
             {
@@ -107,10 +111,13 @@ namespace SharpStrap.Modules
 
             PrintResults();
             return true;
-            */
         }
 
-        /*
+        private void InitPackageStorage(ITextFileInput textFileInput, ITextFileOutput textFileOutput)
+        {
+            
+        }
+
         private void AddDefaultVariables()
         {
             this.GlobalVariables.Add("username", Environment.UserName);
@@ -120,48 +127,6 @@ namespace SharpStrap.Modules
 
             this.GlobalVariables.Add("homedir", home);
             this.GlobalVariables.Add("~", home);
-        }
-
-        private void ValidatePackages()
-        {
-            AddMissingNamesForAllPackages();
-            CheckExistanceOfRequirements();
-        }
-
-        private void AddMissingNamesForAllPackages()
-        {
-            var packagesWithoutName = this.Packages.Where(p => string.IsNullOrWhiteSpace(p.Name)).ToList();
-            for(int i = 0; i < packagesWithoutName.Count; ++i)
-                packagesWithoutName[i].Name = $"<Unnamed Package #{i}>";
-        }
-
-        private void DryRunDependencies()
-        {
-            var requirements = this.Packages.Select(p => (p.Name, p.Requires)).ToList();
-            var solved = requirements.Where(r => r.Requires.Any() == false).ToList();
-
-            while(requirements.Count() != 0)
-            {
-                var solvable = requirements.Where(p => p.Requires.Except(solved.Where(d => d.Name != null).Select(d => d.Name)).Count() == 0);
-                if(solvable.Count() == 0)
-                    throw new ArgumentException("The given package combination cannot be solved.");
-                
-                foreach(var s in solvable)
-                    solved.Add(s);
-
-                requirements.RemoveAll(r => solvable.Contains(r));
-            }
-        }
-
-        private void CheckExistanceOfRequirements()
-        {
-            var requirements = this.Packages.SelectMany(p => p.Requires).Distinct();
-            var names = this.Packages.Select(p => p.Name);
-
-            var nonExistingNames = requirements.Where(r => names.Contains(r) == false);
-
-            if(nonExistingNames.Count() != 0)
-                throw new ArgumentException($"The following requirements are listed but do not exist: {string.Join(", ", nonExistingNames)}.");
         }
 
         /// <summary>
@@ -177,34 +142,11 @@ namespace SharpStrap.Modules
         /// Checks the existance of a previous log file and reads the previously installed packages from it.
         /// These packages will be moved to <see cref="solvedPackages"/> and not rerun.
         /// </summary>
-        private void LoadSolvedPackagesFromLog()
+        private string[] LoadSolvedPackagesFromLog()
         {
-            if(string.IsNullOrWhiteSpace(SuccessLogFilename) == false && System.IO.File.Exists(SuccessLogFilename))
-            {
-                var previouslyRunPackageNames = textFileInput.ReadAllLines(SuccessLogFilename).Where(l => string.IsNullOrWhiteSpace(l) == false);
-                var previouslyRunPackages = previouslyRunPackageNames.Select(name => this.Packages.Find(p => p.Name == name && p.IgnoreAlreadySolved == false)).Where(x => x != null).ToList();
-                this.Packages.RemoveAll(p => previouslyRunPackages.Contains(p) && p.IgnoreAlreadySolved == false);
-                this.previouslyRunPackages.AddRange(previouslyRunPackages);
-
-                ioDefinition.TextWriter.WriteLine("The following packages have already been finished:");
-                ioDefinition.TextWriter.WriteLine();
-                foreach(var package in previouslyRunPackageNames)
-                    ioDefinition.TextWriter.WriteLine($" * {package}");
-                ioDefinition.TextWriter.WriteLine();
-                ioDefinition.TextWriter.WriteLine($"If you want to repeat these steps remove '{SuccessLogFilename}'.");
-            }
+            throw new NotImplementedException();
         }
 
-        private void PrintPackageLogSummary()
-        {
-            this.ioDefinition.TextWriter.WriteLine($"The following packages have been finished previously and will not be run:");
-            foreach(var package in this.previouslyRunPackages)
-                this.ioDefinition.TextWriter.WriteLine(package.Name);
-
-            ioDefinition.TextWriter.WriteLine($"The following packages will be run:");
-            foreach(var package in Packages)
-                this.ioDefinition.TextWriter.WriteLine(package.Name);
-        }
 
         /// <summary>
         /// Displays a summary of the deserialized packages. Includes all packages, even the previously completed ones.
@@ -260,58 +202,30 @@ namespace SharpStrap.Modules
             }
         }
 
-        /// <summary>
-        /// Runs each package separately, taking their prerequisites into account.
-        /// </summary>
-        /// <returns></returns>
-        private async Task RunAllPackages(List<Package> packages)
+        private async Task RunAllPackages(PackageStorage packageStorage)
         {
-            while(packages.Count() != 0)
+            Package package = null;
+            while ((package = packageStorage.GetNextPackage()) != null)
             {
-                var solved = new List<Package>();
-                var unsolved = new List<Package>();
-
-                var solvablePackages = packages
-                                           .Where(p => ValidateRequirementsMet(p, this.solvedPackages))
-                                           .ToList();
-
-                if (solvablePackages.Count == 0)
+                try
                 {
-                    this.ioDefinition.TextWriter.SetForegroundColor(ConsoleColor.Red);
-                    this.ioDefinition.TextWriter.WriteLine($"There are {packages.Count()} packages left to work on but their requirements have not been met.");
-                    this.ioDefinition.TextWriter.ResetColors();
-                    return;
+                    await package.Run(this.ioDefinition.TextWriter, this.GlobalVariables);
+                    packageStorage.MarkPackageSolved(package);
                 }
-
-                foreach(var package in solvablePackages)
+                catch (ShellCommandException ex)
                 {
-                    try{
-                        await package.Run(this.ioDefinition.TextWriter, this.GlobalVariables);
-
-                        // Add the package to the solved dependencies so that the depending packages can be run.
-                        //
-                        solved.Add(package);
-                        packages.Remove(package);
-                    }
-                    catch(ShellCommandException ex)
+                    this.ioDefinition.TextWriter.WriteLine($"Encountered an {ex.GetType().Name} with: {ex.Message}");
+                    packageStorage.MarkPackageFailed(package);
+                    
+                    if(package.IsCritical)
                     {
-                        this.ioDefinition.TextWriter.WriteLine($"Encountered an {ex.GetType().Name} with: {ex.Message}");
-                        unsolved.Add(package);
-                        packages.Remove(package);
-                        if(package.IsCritical)
-                        {
-                            this.ioDefinition.TextWriter.WriteLine("Bootstrapping won't continue as this is a critical package.");
-                            return;
-                        }
+                        this.ioDefinition.TextWriter.WriteLine("Bootstrapping won't continue as this is a critical package.");
+                        return;
                     }
                 }
-
-                this.solvedPackages.AddRange(solved);
-                this.unsolvedPackages.AddRange(unsolved);
             }
         }
-
-
+        
         /// <summary>
         /// Writes the contents of <see cref="solvedPackages"/> to the log file.
         /// </summary>
@@ -388,6 +302,5 @@ namespace SharpStrap.Modules
                 this.ioDefinition.TextWriter.WriteLine($"{paddedPackageName} {paddedStatus}");
             }
         }
-        */
     }
 }

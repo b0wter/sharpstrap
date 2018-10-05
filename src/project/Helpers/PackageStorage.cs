@@ -37,6 +37,37 @@ namespace SharpStrap.Helpers
 
     public class PackageStorage
     {
+        private const PackageEvaluationStates DefaultPackageState = PackageEvaluationStates.NotEvaluated;
+        private const PackageEvaluationStates DefaultSuccessSate = PackageEvaluationStates.Solved;
+        
+        public IEnumerable<Package> All
+        {
+            get
+            {
+                var values = Enum.GetValues(typeof(PackageEvaluationStates)).Cast<PackageEvaluationStates>();
+                return values.SelectMany(value => this.packagePool[value]);
+            }
+        }
+
+        /// <summary>
+        /// Returns all packages that will be run (NotEvaluated or Ready) and all packages that will not be run (remaining states).
+        /// </summary>
+        public (IEnumerable<Package> ToBeRun, IEnumerable<Package> NotToRun) RemainingPackagesToRun
+        {
+            get
+            {
+                var toRun =        this.packagePool[PackageEvaluationStates.NotEvaluated]
+                            .Union(this.packagePool[PackageEvaluationStates.Ready]);
+
+                var notToRun =     this.packagePool[PackageEvaluationStates.Failed]
+                            .Union(this.packagePool[PackageEvaluationStates.Solved])
+                            .Union(this.packagePool[PackageEvaluationStates.Unresolvable])
+                            .Union(this.packagePool[PackageEvaluationStates.UnmetDependency]);
+
+                return (toRun, notToRun);
+            }
+        }
+
         protected readonly Dictionary<PackageEvaluationStates, IList<Package>> packagePool;
         protected readonly ITextFileOutput textOutput;
 
@@ -55,27 +86,84 @@ namespace SharpStrap.Helpers
                 successfulPackageNames = new string[0];
             foreach(var package in packages)
                 if(successfulPackageNames.Contains(package.Name))
-                    packagePool[PackageEvaluationStates.Solved].Add(package);
+                    packagePool[DefaultSuccessSate].Add(package);
                 else
-                    packagePool[PackageEvaluationStates.NotEvaluated].Add(package);
+                    packagePool[DefaultPackageState].Add(package);
         }
         
+        /// <summary>
+        /// Evaluates all packages in the pool and returns a package that is ready to run.
+        /// Returns null if there is no package available.
+        /// </summary>
+        /// <returns></returns>
         public Package GetNextPackage()
         {
             EvaluatePackages();
             return this.packagePool[PackageEvaluationStates.Ready].FirstOrDefault();
         }
+        
+        /// <summary>
+        /// Runs basic validation on the packages (dependency checking, setting fallback names).
+        /// </summary>
+        /// <returns></returns>
+        public (bool, string) ValidatePackages()
+        {
+            AddMissingNamesForAllPackages();
+            return CheckForNonExistingRequirements();
+        }
+        
+        /// <summary>
+        /// Adds placeholder names for packages which don't specify a name.
+        /// </summary>
+        private void AddMissingNamesForAllPackages()
+        {
+            var packagesWithoutName = this.All.Where(p => string.IsNullOrWhiteSpace(p.Name)).ToList();
+            for(var i = 0; i < packagesWithoutName.Count; ++i)
+                packagesWithoutName[i].Name = $"<Unnamed Package #{i}>";
+        }
+        
+        /// <summary>
+        /// Returns whether all requirements exist as packages in the current pool.
+        /// </summary>
+        /// <returns></returns>
+        private (bool state, string reason) CheckForNonExistingRequirements()
+        {
+            var requirements = this.All.SelectMany(p => p.Requires).Distinct();
+            var names = this.All.Select(p => p.Name);
 
+            var nonExistingNames = requirements.Where(r => names.Contains(r) == false).ToList();
+
+            if (nonExistingNames.Any())
+                return (false,
+                    $"The following requirements are listed but do not exist: {string.Join(", ", nonExistingNames)}.");
+            else
+                return (true, string.Empty);
+        }
+
+        /// <summary>
+        /// Marks a package as solved in the internal package pool.
+        /// </summary>
+        /// <param name="p"></param>
         public void MarkPackageSolved(Package p)
         {
             MarkPackageAs(p, PackageEvaluationStates.Solved);
         }
         
+        /// <summary>
+        /// Marks a package as failed in the internal package pool.
+        /// </summary>
+        /// <param name="p"></param>
         public void MarkPackageFailed(Package p)
         {
             MarkPackageAs(p, PackageEvaluationStates.Failed);
         }
-
+        
+        /// <summary>
+        /// Moves a package from one state to another.
+        /// </summary>
+        /// <param name="p"></param>
+        /// <param name="newState"></param>
+        /// <exception cref="ArgumentException"></exception>
         private void MarkPackageAs(Package p, PackageEvaluationStates newState)
         {
             if(p == null)
@@ -88,7 +176,7 @@ namespace SharpStrap.Helpers
             }
             else
             {
-                var (found, state) = TryGetEvaluationStateForPackage(p, PackageEvaluationStates.NotEvaluated);
+                var (found, state) = TryGetEvaluationStateForPackage(p, DefaultPackageState);
                 if(found)
                     throw new ArgumentException($"The package '{p.Name}' is not in the 'Ready'-state and thus cannot be marked solved. It was found in the '{state}'-state.");
                 else
@@ -96,6 +184,35 @@ namespace SharpStrap.Helpers
             }
         }
 
+        /// <summary>
+        /// Check whether the dependencies for all packages can be met.
+        /// </summary>
+        /// <returns></returns>
+        public bool DryRunDependencies()
+        {
+            var requirements = this.packagePool[PackageEvaluationStates.NotEvaluated].Select(p => (p.Name, p.Requires)).ToList();
+            var solved = requirements.Where(r => r.Requires.Any() == false).ToList();
+
+            while(requirements.Count() != 0)
+            {
+                var solvable = requirements.Where(p => !p.Requires.Except(solved.Where(d => d.Name != null).Select(d => d.Name)).Any());
+                if (!solvable.Any())
+                    return false;
+
+                solved.AddRange(solvable);
+
+                requirements.RemoveAll(r => solvable.Contains(r));
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Searches the complete packagePool dictionary for the state of a package. Returns false if the package is not found.
+        /// </summary>
+        /// <param name="p"></param>
+        /// <param name="fallback"></param>
+        /// <returns></returns>
         private (bool, PackageEvaluationStates) TryGetEvaluationStateForPackage(Package p, PackageEvaluationStates fallback)
         {
             foreach(var state in Enum.GetValues(typeof(PackageEvaluationStates)).Cast<PackageEvaluationStates>())
@@ -115,7 +232,7 @@ namespace SharpStrap.Helpers
             foreach (var package in packagesToCheck)
             {
                 var newState = CheckPackageState(package);
-                var (found, currentState) = TryGetEvaluationStateForPackage(package, PackageEvaluationStates.NotEvaluated);
+                var (found, currentState) = TryGetEvaluationStateForPackage(package, DefaultPackageState);
 
                 if (found)
                 {
@@ -140,6 +257,11 @@ namespace SharpStrap.Helpers
                        .Union(packagePool[PackageEvaluationStates.UnmetDependency]);
         }
 
+        /// <summary>
+        /// Refreshes the <see cref="DefaultPackageState"/> for the given package.
+        /// </summary>
+        /// <param name="package"></param>
+        /// <returns></returns>
         private PackageEvaluationStates CheckPackageState(Package package)
         {
             if(package.Requires.Any() == false)
@@ -158,13 +280,14 @@ namespace SharpStrap.Helpers
             else
                 return PackageEvaluationStates.UnmetDependency;
         }
-
+        
         /// <summary>
         /// Writes the current state of the packages to the <see cref="ITextFileOutput"/>.
         /// </summary>
         public void LogResult(string filename)
         {
             // TODO: rethink this as it destroys the original stack traces!
+            // TODO: Move this out of the PackageStorage. It should not create a 
             
             var errorLogs = new List<string>();
             foreach (var state in Enum.GetValues(typeof(PackageEvaluationStates)).Cast<PackageEvaluationStates>())
@@ -174,9 +297,9 @@ namespace SharpStrap.Helpers
                     var logName = filename + state.ToString();
                     this.textOutput.WriteAllLines(logName, this.packagePool[state].Select(p => p.Name));
                 }
-                catch
+                catch(Exception ex)
                 {
-                    errorLogs.Add(state.ToString());
+                    errorLogs.Add($"{state.ToString()} ({ex.GetType()})");
                 }
             }
 

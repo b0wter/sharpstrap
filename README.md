@@ -2,6 +2,8 @@ Overview
 ========
 This project is meant to help you bootstrap your Fedora (for now, other distro could be implemented easily) installation. Instead of writing a bash script with tons of commands you simply write a yaml file.
 
+![build status](https://dev.azure.com/b0wter/SharpStrap/_apis/build/status/Generate%20Releases)
+
 Packages
 --------
 A package is a collection of modules that for a meaningful action together. For instance: installing VS code is done like this:

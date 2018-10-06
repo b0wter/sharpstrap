@@ -64,7 +64,7 @@ namespace Tests.Helpers
                                          .ToArray();
             var storage = new TestablePackageStorage(successfulPackageNames, packages);
 
-            storage.OrderedPackages[PackageEvaluationStates.Solved].Count.Should().Be(solvedPackages);
+            storage.OrderedPackages[PackageEvaluationStates.PreviouslyRun].Count.Should().Be(solvedPackages);
             storage.OrderedPackages[PackageEvaluationStates.NotEvaluated].Count.Should().Be(unsolvedPackages);
         }
         
@@ -199,7 +199,7 @@ namespace Tests.Helpers
             var storage = new TestablePackageStorage(new LogEntry[0], packages);
 
             var p = storage.GetNextPackage();
-            storage.MarkPackageSolved(packages.First());
+            storage.MarkPackageFailed(packages.First());
 
             storage.OrderedPackages[PackageEvaluationStates.Failed].Should().Contain(packages.First());
         }

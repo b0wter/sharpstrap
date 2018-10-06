@@ -18,18 +18,6 @@ namespace SharpStrap.Modules
     public class Bootstrap
     {
         /// <summary>
-        /// Number of columns reserved for the names of the packages.
-        /// </summary>
-        private const int PackageNameWidth = 40;
-        /// <summary>
-        /// Number of columns reserved for the number of operations per package.
-        /// </summary>
-        private const int PackageModuleCountWidth = 3;
-        /// <summary>
-        /// Number of columns reserved for the IsCritical flag output.
-        /// </summary>
-        private const int PackageIsCriticalWidth = 8;
-        /// <summary>
         /// Input device, usually the console.
         /// </summary>
         private IIODefinition ioDefinition;
@@ -72,6 +60,10 @@ namespace SharpStrap.Modules
         /// Reads and writes the status of the bootstrap operation into a specific storage.
         /// </summary>
         private IBootstrapStatusLogger statusLogger;
+        /// <summary>
+        /// Used to write various information to the ui.
+        /// </summary>
+        private IPackageInformationPrinter packageInformationPrinter;
         
         /// <summary>
         /// Initializes and runs the bootstrap process.
@@ -81,46 +73,46 @@ namespace SharpStrap.Modules
         /// <param name="columnCount">Number of columns the output devices can render.</param>
         /// <param name="overrideUserDecision">Override the user interaction asking for confirmation.</param>
         /// <returns></returns>
-        public async Task<bool> Run(IBootstrapStatusLogger statusLogger, IIODefinition ioDefinition, ITextFileInput textFileInput, ITextFileOutput textFileOutput, bool overrideUserDecision = false)
+        public async Task<bool> Run(IPackageInformationPrinter packageInformationPrinter, IBootstrapStatusLogger statusLogger, IIODefinition ioDefinition, ITextFileInput textFileInput, ITextFileOutput textFileOutput, bool overrideUserDecision = false)
         {
             this.textFileInput = textFileInput;
             this.textFileOutput = textFileOutput;
             this.ioDefinition = ioDefinition;
             this.statusLogger = statusLogger;
-            
-            // TODO: PackageStorages need to be initialized!
+            this.packageInformationPrinter = packageInformationPrinter;
+              
+            // setup package storage
+            var logEntries = statusLogger.LoadOldLog(this.LogFilename);
+            this.packages = new PackageStorage(logEntries, this.RawPackages);
+            this.RawPackages.Clear();
+            this.packages.ValidatePackages();
+            this.cleanupPackages = new PackageStorage(null, RawCleanupPackages);
             
             AddDefaultVariables();
-            
-            this.packages.ValidatePackages();
-            
-            if (this.packages.DryRunDependencies())
+
+            var (dryRunSuccess, dryRunError) = this.packages.DryRunDependencies();
+            if (dryRunSuccess == false)
             {
                 this.ioDefinition.TextWriter.WriteLine("Execution stopped because the dry run was not successful.");
+                this.ioDefinition.TextWriter.WriteLine(dryRunError);
                 return false;
             }
 
             if(InitPackageOperation(overrideUserDecision))
             {
-                LoadSolvedPackagesFromLog();
-                PrintPackageLogSummary();
                 await RunAllPackages(this.packages);
-                this.packages.LogResult(this.LogFilename);
+                WriteLog();
                 await RunAllPackages(this.cleanupPackages);
             }
             else
             {
-                // Package installation was cancelled.
-                // Nothing to do here.
+                return false;
             }
 
-            PrintResults();
-            return true;
-        }
+            // Print the user feedback.
+            this.packageInformationPrinter.PrintResults(this.packages.PreviouslyRun, this.packages.Solved, this.packages.Unsolved);
 
-        private void InitPackageStorage(ITextFileInput textFileInput, ITextFileOutput textFileOutput)
-        {
-            
+            return true;
         }
 
         private void AddDefaultVariables()
@@ -144,51 +136,13 @@ namespace SharpStrap.Modules
         }
 
         /// <summary>
-        /// Checks the existance of a previous log file and reads the previously installed packages from it.
-        /// These packages will be moved to <see cref="solvedPackages"/> and not rerun.
-        /// </summary>
-        private string[] LoadSolvedPackagesFromLog()
-        {
-            throw new NotImplementedException();
-        }
-
-
-        /// <summary>
         /// Displays a summary of the deserialized packages. Includes all packages, even the previously completed ones.
         /// </summary>
         /// <param name="overrideUserDecision"></param>
         /// <returns></returns>
         private bool InitPackageOperation(bool overrideUserDecision)
         {
-            int noOfPackages = Packages.Count();
-            int noOfModules = Packages.Sum(p => p.Modules.Count());
-            this.ioDefinition.TextWriter.WriteLine($"This bootstrap configuration contains {noOfPackages} Packages with a total of {noOfModules} operations.");
-            this.ioDefinition.TextWriter.WriteLine();
-
-            this.ioDefinition.TextWriter.WriteLine($"{"NAME".PadRight(PackageNameWidth)} {"OPS".PadRight(PackageModuleCountWidth)} {"CRITICAL".PadRight(PackageIsCriticalWidth)} DESCRIPTION");
-            this.ioDefinition.TextWriter.WriteLine(new String('=', this.ioDefinition.ColumnWidth));
-
-            int remainingWidth = this.ioDefinition.ColumnWidth - PackageNameWidth - PackageModuleCountWidth - PackageIsCriticalWidth - 3;
-
-            foreach(var package in Packages)
-            {
-                string paddedName;
-                if(package.Name.Length > PackageNameWidth)
-                    paddedName = package.Name.Substring(0, PackageNameWidth -3 ) + "...";
-                else
-                    paddedName = package.Name.PadRight(PackageNameWidth);
-
-                var paddedModuleCount = package.Modules.Count().ToString().PadLeft(PackageModuleCountWidth);
-                var paddedIsCritical = package.IsCritical.ToString().PadRight(PackageIsCriticalWidth);
-
-                string paddedDescription;
-                if(package.Description != null && package.Description.Length > remainingWidth && remainingWidth - 3 > 0)
-                    paddedDescription = package.Description.Substring(0, remainingWidth - 3) + "...";
-                else
-                    paddedDescription = package.Description;
-
-                this.ioDefinition.TextWriter.WriteLine($"{paddedName} {paddedModuleCount} {paddedIsCritical} {paddedDescription}");
-            }
+            this.packageInformationPrinter.PrintDetailedPackageSummary(packages.All);
 
             if(overrideUserDecision)
             {
@@ -230,32 +184,6 @@ namespace SharpStrap.Modules
                 }
             }
         }
-        
-        /// <summary>
-        /// Writes the contents of <see cref="solvedPackages"/> to the log file.
-        /// </summary>
-        private void LogPackagesToFile(IEnumerable<Package> packages, string filename)
-        {
-            if(string.IsNullOrWhiteSpace(filename))
-                return;
-
-            try {
-                textFileOutput.WriteAllLines(filename, packages.Select(p => p.Name));
-            }
-            catch(UnauthorizedAccessException)
-            {
-                this.ioDefinition.TextWriter.SetForegroundColor(ConsoleColor.Red);
-                this.ioDefinition.TextWriter.WriteLine($"Could not write log to '{SuccessLogFilename} because access was denied!");
-                this.ioDefinition.TextWriter.ResetColors();
-            }
-            catch(IOException ex)
-            {
-                this.ioDefinition.TextWriter.SetForegroundColor(ConsoleColor.Red);
-                this.ioDefinition.TextWriter.WriteLine($"Could not write log to '{SuccessLogFilename} because a general IO exception was raised:");
-                this.ioDefinition.TextWriter.ResetColors();
-                this.ioDefinition.TextWriter.WriteLine(ex.Message);
-            }
-        }
 
         /// <summary>
         /// Checks if the requirements for the given package have been installed.
@@ -264,47 +192,19 @@ namespace SharpStrap.Modules
         /// <returns></returns>
         private bool ValidateRequirementsMet(Package p, IEnumerable<Package> solvedPackages)
         {
-            return p.Requires.Except(solvedPackages.Where(d => d.Name != null).Select(d => d.Name)).Count() == 0;
+            return p.Requires.Except(solvedPackages.Where(d => d.Name != null).Select(d => d.Name)).Any() == false;
         }
 
-        private void PrintResults()
+        private void WriteLog()
         {
-            this.ioDefinition.TextWriter.WriteLine();
-            PrintResultSummary();
-            PrintResultHeader();
-            PrintResultsFor(this.previouslyRunPackages, "PREV");
-            PrintResultsFor(this.solvedPackages, "SUCCESS", ConsoleColor.Green);
-            PrintResultsFor(this.unsolvedPackages, "FAILED", ConsoleColor.Red);
-            this.ioDefinition.TextWriter.ResetColors();
-        }
-
-        private void PrintResultSummary()
-        {
-            this.ioDefinition.TextWriter.WriteLine($"{this.unsolvedPackages.Count} packages have not been run due to errors or unmet requirements.");
-            this.ioDefinition.TextWriter.WriteLine($"{this.solvedPackages.Count} packages have been run successfully.");
-            this.ioDefinition.TextWriter.WriteLine($"{this.previouslyRunPackages.Count} packages have been run previously and will not be run again.");
-        }
-
-        private void PrintResultHeader()
-        {
-            this.ioDefinition.TextWriter.WriteLine();
-            this.ioDefinition.TextWriter.WriteLine($"{"NAME".PadRight(PackageNameWidth)} {"RESULT".PadRight(PackageModuleCountWidth)}");
-            this.ioDefinition.TextWriter.WriteLine(new String('=', this.ioDefinition.ColumnWidth));
-        }
-
-        private void PrintResultsFor(IEnumerable<Package> packages, string status, ConsoleColor resultColor = ConsoleColor.White)
-        {
-            const int columnWidth = 7;
-            string paddedStatus = status.PadRight(columnWidth).ToUpper();
-            if(paddedStatus.Length > columnWidth)
-                paddedStatus = paddedStatus.Substring(0, columnWidth - 3) + "...";
-
-
-            foreach(var p in packages)
+            try
             {
-                var packageName = string.IsNullOrWhiteSpace(p?.Name) ? "no name?" : p.Name;
-                var paddedPackageName = packageName.PadRight(PackageNameWidth);
-                this.ioDefinition.TextWriter.WriteLine($"{paddedPackageName} {paddedStatus}");
+                this.statusLogger.SaveNewLog(this.LogFilename, this.packages.GetLogResult());
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                this.ioDefinition.TextWriter.SetBackgroundColor(ConsoleColor.Red);
+                this.ioDefinition.TextWriter.WriteLine("Could not write a log file because write access was denied.");
             }
         }
     }

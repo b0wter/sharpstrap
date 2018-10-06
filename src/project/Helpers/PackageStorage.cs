@@ -32,14 +32,18 @@ namespace SharpStrap.Helpers
         /// <summary>
         /// The package has been run and failed.
         /// </summary>
-        Failed
+        Failed,
+        /// <summary>
+        /// The package has been solved during a previous run.
+        /// </summary>
+        PreviouslyRun
     }
 
     public class PackageStorage
     {
         private const PackageEvaluationStates DefaultPackageState = PackageEvaluationStates.NotEvaluated;
-        private const PackageEvaluationStates DefaultSuccessSate = PackageEvaluationStates.Solved;
-        private const PackageEvaluationStates DefaultFailedState = PackageEvaluationStates.Failed;
+        public const PackageEvaluationStates DefaultSuccessSate = PackageEvaluationStates.Solved;
+        public const PackageEvaluationStates DefaultFailedState = PackageEvaluationStates.Failed;
         
         public IEnumerable<Package> All
         {
@@ -50,24 +54,11 @@ namespace SharpStrap.Helpers
             }
         }
 
-        /// <summary>
-        /// Returns all packages that will be run (NotEvaluated or Ready) and all packages that will not be run (remaining states).
-        /// </summary>
-        public (IEnumerable<Package> ToBeRun, IEnumerable<Package> NotToRun) RemainingPackagesToRun
-        {
-            get
-            {
-                var toRun =        this.packagePool[PackageEvaluationStates.NotEvaluated]
-                            .Union(this.packagePool[PackageEvaluationStates.Ready]);
+        public IEnumerable<Package> Solved => packagePool[DefaultSuccessSate];
 
-                var notToRun =     this.packagePool[PackageEvaluationStates.Failed]
-                            .Union(this.packagePool[PackageEvaluationStates.Solved])
-                            .Union(this.packagePool[PackageEvaluationStates.Unresolvable])
-                            .Union(this.packagePool[PackageEvaluationStates.UnmetDependency]);
+        public IEnumerable<Package> Unsolved => All.Except(Solved);
 
-                return (toRun, notToRun);
-            }
-        }
+        public IEnumerable<Package> PreviouslyRun => packagePool[PackageEvaluationStates.PreviouslyRun];
 
         protected readonly Dictionary<PackageEvaluationStates, IList<Package>> packagePool;
 
@@ -87,7 +78,7 @@ namespace SharpStrap.Helpers
                 if(logEntries.Any(entry => 
                         entry.Name == package.Name && 
                         string.Equals(entry.Status, DefaultSuccessSate.ToString(), StringComparison.InvariantCultureIgnoreCase)))
-                    packagePool[DefaultSuccessSate].Add(package);
+                    packagePool[PackageEvaluationStates.PreviouslyRun].Add(package);
                 else
                     packagePool[DefaultPackageState].Add(package);
         }
@@ -189,7 +180,7 @@ namespace SharpStrap.Helpers
         /// Check whether the dependencies for all packages can be met.
         /// </summary>
         /// <returns></returns>
-        public bool DryRunDependencies()
+        public (bool, string) DryRunDependencies()
         {
             var requirements = this.packagePool[PackageEvaluationStates.NotEvaluated].Select(p => (p.Name, p.Requires)).ToList();
             var solved = requirements.Where(r => r.Requires.Any() == false).ToList();
@@ -198,14 +189,14 @@ namespace SharpStrap.Helpers
             {
                 var solvable = requirements.Where(p => !p.Requires.Except(solved.Where(d => d.Name != null).Select(d => d.Name)).Any());
                 if (!solvable.Any())
-                    return false;
+                    return (false, $"Requirements not met: {string.Join(", ", requirements.Select(r => r.Name))}");
 
                 solved.AddRange(solvable);
 
                 requirements.RemoveAll(r => solvable.Contains(r));
             }
 
-            return true;
+            return (true, string.Empty);
         }
 
         /// <summary>

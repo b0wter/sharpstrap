@@ -20,8 +20,8 @@ namespace SharpStrap.Helpers
     /// </summary>
     public interface IBootstrapStatusLogger
     {
-        IEnumerable<LogEntry> LoadOldLog();
-        void SaveNewLog(IEnumerable<LogEntry> entries);
+        IEnumerable<LogEntry> LoadOldLog(string logFilename);
+        void SaveNewLog(string logFilename, IEnumerable<LogEntry> entries);
     }
 
     /// <summary>
@@ -29,17 +29,13 @@ namespace SharpStrap.Helpers
     /// </summary>
     public class FileBootstrapStatusLogger : IBootstrapStatusLogger
     {
-        private readonly string logFilename;
-        
-        public FileBootstrapStatusLogger(string logFilename)
+        public IEnumerable<LogEntry> LoadOldLog(string logFilename)
         {
-            this.logFilename = logFilename;
-        }
-        
-        public IEnumerable<LogEntry> LoadOldLog()
-        {
+            if (System.IO.File.Exists(logFilename) == false)
+                return new LogEntry[0];
+            
             var entries = new List<LogEntry>();
-            using (var reader = File.OpenText(this.logFilename))
+            using (var reader = File.OpenText(logFilename))
             {
                 var line = string.Empty;
                 var currentStatus = string.Empty;
@@ -58,9 +54,9 @@ namespace SharpStrap.Helpers
             return entries;
         }
 
-        public void SaveNewLog(IEnumerable<LogEntry> entries)
+        public void SaveNewLog(string logFilename, IEnumerable<LogEntry> entries)
         {
-            using (var writer = File.CreateText(this.logFilename))
+            using (var writer = File.CreateText(logFilename))
             {
                 var groupedEntries = entries.GroupBy(x => x.Status);
                 foreach (var group in groupedEntries)

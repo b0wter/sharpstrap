@@ -6,4 +6,4 @@ echo "=== /app ==="
 ls /app
 echo "=== /mnt/yaml ==="
 ls /mnt/yaml
-dotnet /app/cootstrap.dll /mnt/yaml/complete.yaml
+dotnet /app/sharpstrap.dll /mnt/yaml/complete.yaml

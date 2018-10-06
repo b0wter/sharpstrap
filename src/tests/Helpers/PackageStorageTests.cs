@@ -21,7 +21,7 @@ namespace Tests.Helpers
         {
             var packages = new List<Package>(DummyPackageCount);
             
-            for(int i = 0; i < DummyPackageCount; ++i)
+            for(var i = 0; i < DummyPackageCount; ++i)
                 packages.Add(new Package()
                 {
                     Name = string.Format(DummyPackageNameTemplate, i),
@@ -36,7 +36,7 @@ namespace Tests.Helpers
         {
             var packages = CreateDefaultPackages();
             var textOutput = A.Fake<ITextFileOutput>();
-            var storage = new TestablePackageStorage(textOutput, null, packages);
+            var storage = new TestablePackageStorage(null, packages);
 
             storage.OrderedPackages[PackageEvaluationStates.NotEvaluated].Count.Should().Be(packages.Count());
         }
@@ -46,7 +46,7 @@ namespace Tests.Helpers
         {
             var packages = CreateDefaultPackages();
             var textOutput = A.Fake<ITextFileOutput>();
-            var storage = new TestablePackageStorage(textOutput, new string[0], packages);
+            var storage = new TestablePackageStorage(new LogEntry[0], packages);
 
             storage.OrderedPackages[PackageEvaluationStates.NotEvaluated].Count.Should().Be(packages.Count());
         }
@@ -58,8 +58,11 @@ namespace Tests.Helpers
             var solvedPackages = packages.Count() / 2;
             var unsolvedPackages = packages.Count() - solvedPackages;
             var textOutput = A.Fake<ITextFileOutput>();
-            var successfulPackageNames = packages.Take(solvedPackages).Select(x => x.Name).ToArray();
-            var storage = new TestablePackageStorage(textOutput, successfulPackageNames, packages);
+            var successfulPackageNames = packages
+                                         .Take(solvedPackages)
+                                         .Select(x => new LogEntry { Name = x.Name, Status = PackageStorage.DefaultSuccessSate.ToString()})
+                                         .ToArray();
+            var storage = new TestablePackageStorage(successfulPackageNames, packages);
 
             storage.OrderedPackages[PackageEvaluationStates.Solved].Count.Should().Be(solvedPackages);
             storage.OrderedPackages[PackageEvaluationStates.NotEvaluated].Count.Should().Be(unsolvedPackages);
@@ -70,8 +73,10 @@ namespace Tests.Helpers
         {
             var packages = CreateDefaultPackages();
             var textOutput = A.Fake<ITextFileOutput>();
-            var successfulPackageNames = packages.Select(p => p.Name + "ABC").ToArray();
-            var storage = new TestablePackageStorage(textOutput, successfulPackageNames, packages);
+            var successfulPackageNames = packages
+                                         .Select(p => new LogEntry { Name = p.Name + "ABC", Status = PackageStorage.DefaultSuccessSate.ToString() })
+                                         .ToArray();
+            var storage = new TestablePackageStorage(successfulPackageNames, packages);
 
             storage.OrderedPackages[PackageEvaluationStates.Solved].Count.Should().Be(0);
             storage.OrderedPackages[PackageEvaluationStates.NotEvaluated].Count.Should().Be(packages.Count());
@@ -105,7 +110,7 @@ namespace Tests.Helpers
         {
             var packages = new List<Package>(0);
             var textOutput = A.Fake<ITextFileOutput>();
-            var storage = new TestablePackageStorage(textOutput, new string[0], new Package[0]);
+            var storage = new TestablePackageStorage(new LogEntry[0], new Package[0]);
 
             var result = storage.GetNextPackage();
 
@@ -124,7 +129,7 @@ namespace Tests.Helpers
                 }
             };
             var textOutput = A.Fake<ITextFileOutput>();
-            var storage = new TestablePackageStorage(textOutput, new string[0], packages);
+            var storage = new TestablePackageStorage(new LogEntry[0], packages);
             
             var result = storage.GetNextPackage();
 
@@ -138,7 +143,7 @@ namespace Tests.Helpers
         {
             var packages = CreateDefaultPackages();
             var textOutput = A.Fake<ITextFileOutput>();
-            var storage = new TestablePackageStorage(textOutput, new string[0], packages);
+            var storage = new TestablePackageStorage(new LogEntry[0], packages);
             
             Assert.Throws<ArgumentException>(() => storage.MarkPackageSolved(null)).Message.Should().Contain("Cannot mark 'null' as solved.");
         }
@@ -148,7 +153,7 @@ namespace Tests.Helpers
         {
             var packages = CreateDefaultPackages();
             var textOutput = A.Fake<ITextFileOutput>();
-            var storage = new TestablePackageStorage(textOutput, new string[0], packages);
+            var storage = new TestablePackageStorage(new LogEntry[0], packages);
 
             Assert.Throws<ArgumentException>(() => storage.MarkPackageSolved(new Package())).Message.Should().Contain("does not exist in the storage.");
         }
@@ -158,7 +163,7 @@ namespace Tests.Helpers
         {
             var packages = CreateDefaultPackages().ToArray();
             var textOutput = A.Fake<ITextFileOutput>();
-            var storage = new TestablePackageStorage(textOutput, new string[0], packages);
+            var storage = new TestablePackageStorage(new LogEntry[0], packages);
 
             var p = storage.GetNextPackage();
             storage.MarkPackageSolved(packages.First());
@@ -171,7 +176,7 @@ namespace Tests.Helpers
         {
             var packages = CreateDefaultPackages();
             var textOutput = A.Fake<ITextFileOutput>();
-            var storage = new TestablePackageStorage(textOutput, new string[0], packages);
+            var storage = new TestablePackageStorage(new LogEntry[0], packages);
             
             Assert.Throws<ArgumentException>(() => storage.MarkPackageFailed(null)).Message.Should().Contain("Cannot mark 'null' as solved.");
         }
@@ -181,7 +186,7 @@ namespace Tests.Helpers
         {
             var packages = CreateDefaultPackages();
             var textOutput = A.Fake<ITextFileOutput>();
-            var storage = new TestablePackageStorage(textOutput, new string[0], packages);
+            var storage = new TestablePackageStorage(new LogEntry[0], packages);
 
             Assert.Throws<ArgumentException>(() => storage.MarkPackageFailed(new Package())).Message.Should().Contain("does not exist in the storage.");
         }
@@ -191,7 +196,7 @@ namespace Tests.Helpers
         {
             var packages = CreateDefaultPackages().ToArray();
             var textOutput = A.Fake<ITextFileOutput>();
-            var storage = new TestablePackageStorage(textOutput, new string[0], packages);
+            var storage = new TestablePackageStorage(new LogEntry[0], packages);
 
             var p = storage.GetNextPackage();
             storage.MarkPackageSolved(packages.First());

@@ -81,22 +81,12 @@ namespace SharpStrap.Modules
             this.statusLogger = statusLogger;
             this.packageInformationPrinter = packageInformationPrinter;
               
-            // setup package storage
-            var logEntries = statusLogger.LoadOldLog(this.LogFilename);
-            this.packages = new PackageStorage(logEntries, this.RawPackages);
-            this.RawPackages.Clear();
-            this.packages.ValidatePackages();
-            this.cleanupPackages = new PackageStorage(null, RawCleanupPackages);
-            
+            InitPackageStorages();
             AddDefaultVariables();
-
-            var (dryRunSuccess, dryRunError) = this.packages.DryRunDependencies();
+            
+            var dryRunSuccess = DryRunPackages();
             if (dryRunSuccess == false)
-            {
-                this.ioDefinition.TextWriter.WriteLine("Execution stopped because the dry run was not successful.");
-                this.ioDefinition.TextWriter.WriteLine(dryRunError);
                 return false;
-            }
 
             if(InitPackageOperation(overrideUserDecision))
             {
@@ -115,6 +105,15 @@ namespace SharpStrap.Modules
             return true;
         }
 
+        private void InitPackageStorages()
+        {
+            var logEntries = statusLogger.LoadOldLog(this.LogFilename);
+            this.packages = new PackageStorage(logEntries, this.RawPackages);
+            this.RawPackages.Clear();
+            this.packages.ValidatePackages();
+            this.cleanupPackages = new PackageStorage(null, RawCleanupPackages);
+        }
+
         private void AddDefaultVariables()
         {
             this.GlobalVariables.Add("username", Environment.UserName);
@@ -124,6 +123,21 @@ namespace SharpStrap.Modules
 
             this.GlobalVariables.Add("homedir", home);
             this.GlobalVariables.Add("~", home);
+        }
+
+        private bool DryRunPackages()
+        {
+            var (dryRunSuccess, dryRunError) = this.packages.DryRunDependencies();
+            if (dryRunSuccess == false)
+            {
+                this.ioDefinition.TextWriter.WriteLine("Execution stopped because the dry run was not successful.");
+                this.ioDefinition.TextWriter.WriteLine(dryRunError);
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
 
         /// <summary>

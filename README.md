@@ -2,7 +2,7 @@ Overview
 ========
 This project is meant to help you bootstrap your Fedora (for now, other distro could be implemented easily) installation. Instead of writing a bash script with tons of commands you simply write a yaml file.
 
-![build status](https://dev.azure.com/b0wter/SharpStrap/_apis/build/status/Generate%20Releases)(https://dev.azure.com/b0wter/SharpStrap)
+[![build status](https://dev.azure.com/b0wter/SharpStrap/_apis/build/status/Generate%20Releases)](https://dev.azure.com/b0wter/SharpStrap)
 
 Packages
 --------

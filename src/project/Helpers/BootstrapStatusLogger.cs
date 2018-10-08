@@ -61,7 +61,7 @@ namespace SharpStrap.Helpers
                 var groupedEntries = entries.GroupBy(x => x.Status);
                 foreach (var group in groupedEntries)
                 {
-                    writer.WriteLine(group.Key);
+                    writer.WriteLine($"[{group.Key}]");
                     foreach(var value in group)
                         writer.WriteLine((value.Name));
                 }

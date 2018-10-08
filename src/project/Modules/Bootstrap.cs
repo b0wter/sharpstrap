@@ -219,6 +219,7 @@ namespace SharpStrap.Modules
             {
                 this.ioDefinition.TextWriter.SetBackgroundColor(ConsoleColor.Red);
                 this.ioDefinition.TextWriter.WriteLine("Could not write a log file because write access was denied.");
+                this.ioDefinition.TextWriter.ResetColors();
             }
         }
     }

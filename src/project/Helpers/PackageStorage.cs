@@ -300,15 +300,10 @@ namespace SharpStrap.Helpers
         /// </summary>
         public IEnumerable<LogEntry> GetLogResult()
         {
-            var success = this.packagePool[PackageEvaluationStates.Solved].Select(x => new LogEntry
-                {Name = x.Name, Status = DefaultSuccessSate.ToString()});
-
-            var nonFinishedStates = Enum.GetValues(typeof(PackageEvaluationStates))
-                .Cast<PackageEvaluationStates>()
-                .SelectMany(x => this.packagePool[x])
-                .Select(x => new LogEntry { Name = x.Name, Status = DefaultFailedState.ToString()});
-
-            return success.Union(nonFinishedStates);
+            return Enum.GetValues(typeof(PackageEvaluationStates))
+                       .Cast<PackageEvaluationStates>()
+                       .SelectMany(state => this.packagePool[state].Select(package => (state, package)))
+                       .Select(x => new LogEntry {Name = x.package.Name, Status = x.state.ToString()});
         }
     }
 }

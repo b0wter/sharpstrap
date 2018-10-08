@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
@@ -50,18 +51,40 @@ namespace SharpStrap.Helpers
                         entries.Add(new LogEntry() { Name = line, Status = currentStatus });
                 }
             }
-
+            
             return entries;
         }
 
+        /// <summary>
+        /// Writes a log file to the local file system. Contains the state of each package.
+        /// </summary>
+        /// <example>
+        /// The resulting log file looks like this:
+        ///
+        /// [Solved]
+        /// Package #1
+        /// Package #2
+        /// ...
+        ///
+        /// [Failed]
+        /// Package #5
+        /// Package #6
+        /// ...
+        ///
+        /// </example>
+        /// <param name="logFilename"></param>
+        /// <param name="entries"></param>
         public void SaveNewLog(string logFilename, IEnumerable<LogEntry> entries)
         {
+            var isFirst = true;
             using (var writer = File.CreateText(logFilename))
             {
                 var groupedEntries = entries.GroupBy(x => x.Status);
                 foreach (var group in groupedEntries)
                 {
-                    writer.WriteLine($"[{group.Key}]");
+                    var header = $"{(isFirst ? string.Empty : Environment.NewLine)}[{group.Key}]";
+                    isFirst = false;
+                    writer.WriteLine(header);
                     foreach(var value in group)
                         writer.WriteLine((value.Name));
                 }

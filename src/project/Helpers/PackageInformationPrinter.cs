@@ -7,7 +7,13 @@ namespace SharpStrap.Helpers
 {
     public interface IPackageInformationPrinter
     {
+        /// <summary>
+        /// Prints a short summary of packages that have been run previously and will be run now.
+        /// </summary>
+        /// <param name="previouslyRunPackages"></param>
+        /// <param name="packagesToRun"></param>
         void PrintPackageSummary(IEnumerable<Package> previouslyRunPackages, IEnumerable<Package> packagesToRun);
+        
         /// <summary>
         /// Prints the name, description and module count for each package.
         /// </summary>
@@ -83,6 +89,11 @@ namespace SharpStrap.Helpers
             }
         }
         
+        /// <summary>
+        /// Prints a short summary of packages that have been run previously and will be run now.
+        /// </summary>
+        /// <param name="previouslyRunPackages"></param>
+        /// <param name="packagesToRun"></param>
         public void PrintPackageSummary(IEnumerable<Package> previouslyRunPackages, IEnumerable<Package> packagesToRun)
         {
             this.ioDefinition.TextWriter.WriteLine($"The following packages have been finished previously and will not be run:");
@@ -94,6 +105,12 @@ namespace SharpStrap.Helpers
                 this.ioDefinition.TextWriter.WriteLine(package.Name);
         }
         
+        /// <summary>
+        /// Prints a short summary of each package and its result (success, failure, previously run).
+        /// </summary>
+        /// <param name="previouslyRun"></param>
+        /// <param name="solved"></param>
+        /// <param name="unsolved"></param>
         public void PrintResults(IEnumerable<Package> previouslyRun, IEnumerable<Package> solved, IEnumerable<Package> unsolved)
         {
             this.ioDefinition.TextWriter.WriteLine();

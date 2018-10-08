@@ -45,6 +45,9 @@ namespace SharpStrap.Helpers
         public const PackageEvaluationStates DefaultSuccessSate = PackageEvaluationStates.Solved;
         public const PackageEvaluationStates DefaultFailedState = PackageEvaluationStates.Failed;
         
+        /// <summary>
+        /// Returns all packages.
+        /// </summary>
         public IEnumerable<Package> All
         {
             get
@@ -54,10 +57,19 @@ namespace SharpStrap.Helpers
             }
         }
 
+        /// <summary>
+        /// Returns all packages that have been run and succeeded.
+        /// </summary>
         public IEnumerable<Package> Solved => packagePool[DefaultSuccessSate];
 
-        public IEnumerable<Package> Unsolved => All.Except(Solved);
+        /// <summary>
+        /// Returns all packages that have not been solved yet (all except solved and previously run).
+        /// </summary>
+        public IEnumerable<Package> Unsolved => All.Except(Solved).Except(PreviouslyRun);
 
+        /// <summary>
+        /// Returns all packages that have been run previously.
+        /// </summary>
         public IEnumerable<Package> PreviouslyRun => packagePool[PackageEvaluationStates.PreviouslyRun];
 
         protected readonly Dictionary<PackageEvaluationStates, IList<Package>> packagePool;
@@ -74,10 +86,17 @@ namespace SharpStrap.Helpers
             // add the packages to the package pool
             if (logEntries == null)
                 logEntries = new LogEntry[0];
+            logEntries = logEntries.ToList();
+            
+            // assign a matching evaluation state to the packages
             foreach(var package in packages)
                 if(logEntries.Any(entry => 
                         entry.Name == package.Name && 
                         string.Equals(entry.Status, DefaultSuccessSate.ToString(), StringComparison.InvariantCultureIgnoreCase)))
+                    packagePool[PackageEvaluationStates.PreviouslyRun].Add(package);
+                else if(logEntries.Any(entry => 
+                        entry.Name == package.Name && 
+                        string.Equals(entry.Status, PackageEvaluationStates.PreviouslyRun.ToString(), StringComparison.InvariantCultureIgnoreCase)))
                     packagePool[PackageEvaluationStates.PreviouslyRun].Add(package);
                 else
                     packagePool[DefaultPackageState].Add(package);
@@ -183,7 +202,10 @@ namespace SharpStrap.Helpers
         public (bool, string) DryRunDependencies()
         {
             var requirements = this.packagePool[PackageEvaluationStates.NotEvaluated].Select(p => (p.Name, p.Requires)).ToList();
-            var solved = requirements.Where(r => r.Requires.Any() == false).ToList();
+            var solved = requirements.Where(r => r.Requires.Any() == false)
+                                     .Union(this.packagePool[PackageEvaluationStates.PreviouslyRun]
+                                     .Select(p => (p.Name, (IEnumerable<string>) (new string[0]))))
+                                     .ToList();
 
             while(requirements.Count() != 0)
             {

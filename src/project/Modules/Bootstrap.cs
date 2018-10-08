@@ -90,6 +90,7 @@ namespace SharpStrap.Modules
 
             if(InitPackageOperation(overrideUserDecision))
             {
+                this.packageInformationPrinter.PrintPackageSummary(this.packages.PreviouslyRun, this.packages.Unsolved);
                 await RunAllPackages(this.packages);
                 WriteLog();
                 await RunAllPackages(this.cleanupPackages);
@@ -138,15 +139,6 @@ namespace SharpStrap.Modules
             {
                 return true;
             }
-        }
-
-        /// <summary>
-        /// Creates an <see cref="BootstrapResults"/> instance based on the contents of <see cref="this.solvedPackages"/> and <see cref="this.unsolvedPackages"/>.
-        /// </summary>
-        /// <returns></returns>
-        private BootstrapResults CreateBootstrapResultsFromWorkedPackages()
-        {
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -215,7 +207,7 @@ namespace SharpStrap.Modules
             {
                 this.statusLogger.SaveNewLog(this.LogFilename, this.packages.GetLogResult());
             }
-            catch (UnauthorizedAccessException ex)
+            catch (UnauthorizedAccessException)
             {
                 this.ioDefinition.TextWriter.SetBackgroundColor(ConsoleColor.Red);
                 this.ioDefinition.TextWriter.WriteLine("Could not write a log file because write access was denied.");
